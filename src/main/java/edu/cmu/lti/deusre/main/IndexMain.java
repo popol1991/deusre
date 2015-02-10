@@ -6,6 +6,7 @@ import edu.cmu.lti.deusre.index.workqueue.FSWorkQueue;
 import edu.cmu.lti.deusre.index.workqueue.WorkQueue;
 import edu.cmu.lti.deusre.se.ElasticSearchIndex;
 import edu.cmu.lti.deusre.se.Index;
+import edu.cmu.lti.huiying.features.Generator;
 import org.json.simple.JSONObject;
 
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class IndexMain {
         Index index = initIndexServer();
         Parser parser = new XMLParser();
         String dir = args[0];
-        WorkQueue wq = new FSWorkQueue(dir, parser, "xml");
+        WorkQueue wq = new FSWorkQueue(dir, parser);
         while (wq.hasNext()) {
             JSONObject[] docList = wq.next();
             for (Map<String, String> doc : docList) {

@@ -21,9 +21,9 @@ public class FSWorkQueue extends WorkQueue {
     private Path next;
     private String extension;
 
-    public FSWorkQueue(String dir, Parser parser, String extension) {
+    public FSWorkQueue(String dir, Parser parser) {
         super(dir, parser);
-        this.extension = extension;
+        this.extension = parser.getExtension();
         Path path = Paths.get(dir);
         try {
             Stream<Path> pathStream = Files.walk(path);

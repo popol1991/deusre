@@ -1,0 +1,27 @@
+{
+    "analysis": {
+        "filter": {
+            "my_synonym_filter": {
+                "type": "synonym",
+                "synonyms_path": "analysis/synonym.txt"
+            },
+            "english_stemmer": {
+                "type": "stemmer",
+                "language": "english"
+            },
+            "english_possessive_stemmer": {
+                "type": "stemmer",
+                "language": "possessive_english"
+            }
+        },
+        "analyzer": {
+            "my_analyzer": {
+                "filter" : ["lowercase", "my_synonym_filter", "english_possessive_stemmer", "english_stemmer"],
+                "tokenizer": "standard"
+            },
+            "default": {
+                "type": "english"
+            }
+        }
+    }
+}

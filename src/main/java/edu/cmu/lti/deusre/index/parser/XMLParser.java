@@ -1,8 +1,10 @@
 package edu.cmu.lti.deusre.index.parser;
 
+import edu.cmu.lti.huiying.features.Generator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -11,19 +13,23 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
-
-import org.w3c.dom.Element;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Hashtable;
 
 /**
  * Created by Kyle on 2/4/15.
  */
 public class XMLParser extends Parser {
     public static int id = 0;
+
+    private Generator generator;
+
+    public XMLParser() {
+        this.extension = "xml";
+        this.generator = new Generator();
+    }
 
     @Override
     public JSONObject[] parse(Path path) {
@@ -95,26 +101,57 @@ public class XMLParser extends Parser {
             retTable.put("citations", citeAry);
         }
         // headers and rows
-        retTable.put("headers", getRowsFromXml(doc, "headers", "header"));
-        retTable.put("data", getRowsFromXml(doc, "row", "value"));
+        retTable.put("headers", getHeadersFromXml(doc, "headers", "header"));
+        retTable.put("data", getDataRowsFromXml(doc));
         return retTable;
     }
 
-    private JSONArray getRowsFromXml(Element doc, String rowTag, String cellTag) {
-        JSONArray retRows = new JSONArray();
+    private JSONObject getDataRowsFromXml(Element doc) {
+        JSONObject retRows = new JSONObject();
+        NodeList nList = doc.getElementsByTagName("row");
+        for (int i = 0; i < nList.getLength(); i++) {
+            Element rowNode = (Element) nList.item(i);
+            JSONObject dataRow = new JSONObject();
+            JSONArray valueAry = new JSONArray();
+            NodeList cellList = rowNode.getElementsByTagName("value");
+            if (cellList.getLength() > 0) {
+                // assume the first and only the first value of each data row is the row header
+                dataRow.put("row_header", cellList.item(0).getTextContent());
+                for (int j = 1; j < cellList.getLength(); j++) {
+                    String text = cellList.item(j).getTextContent();
+                    JSONObject value = new JSONObject();
+                    Hashtable<String, String> features = generator.cell2Vector(text);
+                    if (!features.get("type").equals("0.0")) {
+                        for (String key : features.keySet()) {
+                            value.put(key, Double.parseDouble(features.get(key)));
+                        }
+                    }
+                    value.put("text", text);
+                    valueAry.add(value);
+                }
+                dataRow.put("values", valueAry);
+            }
+            retRows.put("data_" + i, dataRow);
+        }
+        return retRows;
+    }
+
+    private JSONObject getHeadersFromXml(Element doc, String rowTag, String cellTag) {
+        JSONObject retHeaders = new JSONObject();
         NodeList nList = doc.getElementsByTagName(rowTag);
         for (int i = 0; i < nList.getLength(); i++) {
             Element rowNode = (Element) nList.item(i);
-            JSONArray row = new JSONArray();
             NodeList cellList = rowNode.getElementsByTagName(cellTag);
             for (int j = 0; j < cellList.getLength(); j++) {
+                String key = "header_" + j;
+                if (!retHeaders.containsKey(key)) {
+                    retHeaders.put(key, new JSONArray());
+                }
                 Node cell = cellList.item(j);
-                row.add(cell.getTextContent());
-                //TODO: parse numeric value
+                ((JSONArray) retHeaders.get(key)).add(cell.getTextContent());
             }
-            retRows.add(row);
         }
-        return retRows;
+        return retHeaders;
     }
 
     private JSONObject getArticleInfo(Document doc) {
