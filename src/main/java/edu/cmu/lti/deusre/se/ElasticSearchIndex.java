@@ -4,16 +4,15 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
-import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.collect.HppcMaps;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -36,7 +35,6 @@ public class ElasticSearchIndex extends Index {
     private String setting;
 
     public ElasticSearchIndex(String host, String port, String clusterName, String indexName) {
-        configure();
         Settings settings = ImmutableSettings.settingsBuilder()
                 .put("cluster.name", clusterName).build();
         this.client = new TransportClient(settings)
@@ -46,9 +44,10 @@ public class ElasticSearchIndex extends Index {
         this.docToIndex = 0;
     }
 
-    private void configure() {
+    private void configure(Map<String, String> settings) {
+        String path = settings.get("settings");
         try {
-            this.setting = Files.lines(Paths.get("configuration/settings.json")).parallel().collect(Collectors.joining());
+            this.setting = Files.lines(Paths.get(path)).parallel().collect(Collectors.joining());
         } catch (IOException e) {
             System.err.println("Setting file not existed, use default setting.");
         }
@@ -62,6 +61,7 @@ public class ElasticSearchIndex extends Index {
      */
     @Override
     public boolean create(Map<String, String> settings, boolean recreate) {
+        configure(settings);
         IndicesExistsResponse res = client.admin().indices()
                 .prepareExists(indexName).execute().actionGet();
         if (recreate && res.isExists()) {
@@ -124,5 +124,8 @@ public class ElasticSearchIndex extends Index {
     private void executeBulk() {
         BulkResponse res = bulkRequest.execute().actionGet();
         System.err.println(res.getItems().length + " docs indexed.");
+        if (res.hasFailures()) {
+            System.err.println(res.buildFailureMessage());
+        }
     }
 }

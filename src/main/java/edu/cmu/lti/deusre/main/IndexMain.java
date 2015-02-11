@@ -6,25 +6,25 @@ import edu.cmu.lti.deusre.index.workqueue.FSWorkQueue;
 import edu.cmu.lti.deusre.index.workqueue.WorkQueue;
 import edu.cmu.lti.deusre.se.ElasticSearchIndex;
 import edu.cmu.lti.deusre.se.Index;
-import edu.cmu.lti.huiying.features.Generator;
 import org.json.simple.JSONObject;
 
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by Kyle on 2/4/15.
  */
 public class IndexMain {
+    public static final String CONFIG_PATH = "config.properties";
+
     public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: IndexMain dataDir");
-            System.exit(0);
-        }
+        Properties config = readConfig(CONFIG_PATH);
         // initialization
-        Index index = initIndexServer();
+        Index index = initIndexServer(config);
         Parser parser = new XMLParser();
-        String dir = args[0];
+        String dir = config.getProperty("data");
         WorkQueue wq = new FSWorkQueue(dir, parser);
         while (wq.hasNext()) {
             JSONObject[] docList = wq.next();
@@ -35,12 +35,27 @@ public class IndexMain {
         index.close();
     }
 
-    public static Index initIndexServer() {
-        Index index = new ElasticSearchIndex("localhost", "9300", "experiment", "deusre");
-        String settings = "";
+    private static Properties readConfig(String path) {
+        Properties config = new Properties();
+        try {
+            InputStream inStream = new FileInputStream(new File(path));
+            config.load(inStream);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return config;
+    }
+
+    public static Index initIndexServer(Properties config) {
+        Index index = new ElasticSearchIndex(config.getProperty("host"),
+                config.getProperty("port"),
+                config.getProperty("cluster"),
+                config.getProperty("index"));
         String mappings = "";
         HashMap<String, String> settingMap = new HashMap<>();
-        settingMap.put("settings", settings);
+        settingMap.put("settings", config.getProperty("settings"));
         settingMap.put("mappings", mappings);
         index.create(settingMap, true);
         return index;

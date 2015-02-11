@@ -125,6 +125,8 @@ public class XMLParser extends Parser {
                         for (String key : features.keySet()) {
                             value.put(key, Double.parseDouble(features.get(key)));
                         }
+                    } else {
+                        value.put("type", -1);
                     }
                     value.put("text", text);
                     valueAry.add(value);
@@ -166,8 +168,8 @@ public class XMLParser extends Parser {
         }
         Node title = doc.getElementsByTagName("article-title").item(0);
         articleInfo.put("article-title", title.getTextContent());
-        articleInfo.put("authors", listFromXml(doc, "authors"));
-        articleInfo.put("keywords", listFromXml(doc, "keywords"));
+        articleInfo.put("authors", listFromXml(doc, "author"));
+        articleInfo.put("keywords", listFromXml(doc, "keyword"));
         return articleInfo;
     }
 
