@@ -28,7 +28,7 @@ class ES():
             }
         }
         res = self.es.search(index="deusre", body=query)
-        return ESResponse(res), res['hits']['total']
+        return ESResponse(res)
 
 
 class ESResponse():
@@ -40,6 +40,9 @@ class ESResponse():
             if 'highlight' in hit:
                 jsn['highlight'] = hit['highlight']
             self.hits.append(jsn)
+
+    def size(self):
+        return len(self.hits);
 
     def filter(self, params):
         print len(self.hits)

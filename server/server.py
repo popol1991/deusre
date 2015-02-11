@@ -25,9 +25,10 @@ def search():
     if 'size' in params:
         size = params['size']
     page = 0
-    all = sys.maxint
-    while len(res) < size < all:
-        text_response, all = es.text_search(params['q'], page, size*2)
+    left = sys.maxint
+    while len(res) < size and left > 0:
+        text_response = es.text_search(params['q'], page, size)
+        left = text_response.size()
         res += text_response.filter(params)
         page += 1
     print res

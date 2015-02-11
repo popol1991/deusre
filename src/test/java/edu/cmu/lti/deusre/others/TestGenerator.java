@@ -22,7 +22,6 @@ public class TestGenerator {
     @Test
     public void testNegative() {
         Hashtable<String, String> res = this.g.cell2Vector("−0.461");
-        System.err.println(res.get("mainValue"));
         assertTrue(res.get("mainValue").equals("−0.461"));
     }
 }

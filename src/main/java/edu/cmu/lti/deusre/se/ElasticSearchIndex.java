@@ -124,8 +124,10 @@ public class ElasticSearchIndex extends Index {
     private void executeBulk() {
         BulkResponse res = bulkRequest.execute().actionGet();
         System.err.println(res.getItems().length + " docs indexed.");
+        System.err.flush();
         if (res.hasFailures()) {
             System.err.println(res.buildFailureMessage());
         }
+        this.bulkRequest = client.prepareBulk();
     }
 }

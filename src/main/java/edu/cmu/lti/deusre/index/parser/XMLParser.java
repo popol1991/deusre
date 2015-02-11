@@ -40,6 +40,7 @@ public class XMLParser extends Parser {
         JSONObject[] docList = new JSONObject[tableList.length];
         for (int i = 0; i < tableList.length; i++) {
             tableList[i].putAll(articleInfo);
+            tableList[i].put("path", path.toString());
             docList[i] = new JSONObject();
             docList[i].put("source", tableList[i].toJSONString());
             docList[i].put("type", "table");
