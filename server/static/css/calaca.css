@@ -1,0 +1,120 @@
+/*
+ * Calaca
+ * Simple search client for Elasticsearch
+ * https://github.com/romansanchez/Calaca
+ * Author - Roman Sanchez
+ * http://romansanchez.me
+ * @rooomansanchez
+ * 
+ * v1.0.1
+ * MIT License
+ */
+
+/* Colors 
+Indian Red: #ed4877
+Crimson: #d62256 
+Whitesmoke: #ecf0f1 */
+
+body {
+  font-family: "Arial";
+  background-color: #ecf0f1;
+}
+
+/* Header */
+.jumbotron {
+  height: 280px;
+  width: 100%;
+  background-color: #ed4877;
+}
+.title {
+  font-size: 40px;
+  color: white;
+  text-align: center;
+  padding-top: 70px;
+}
+form {
+    height: 100%;
+}
+.search-box-container {
+  width: 880px;
+  height: 69px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 60px;
+  border-radius: 5px;
+}
+.search-select {
+    float: right;
+    width: 120px;
+    height: 100%;
+    color: #000;
+    background: none;
+    font-size: 20px;
+    font-weight:700;
+    border:4px solid #fff;
+    border-radius: 5px;
+    margin: 5px 5px 0px 5px;
+}
+.search-box {
+  width: 500px;
+  height: 100%;
+  color: #000;
+  background-color: #fff;
+  font-size: 30px;
+  padding-left: 20px;
+  padding-right: 20px;
+  outline: 0;
+  border-radius: 5px;
+  border: 4px solid #d62256;
+}
+.search-button {
+    float:right;
+    width: 180px;
+    height: 100%;
+    cursor: pointer;
+    font-size: 30px;
+    text-transform: uppercase;
+    background: none;
+    letter-spacing: 1px;
+    font-weight: 700;
+    border: 4px solid #fff;
+    border-radius: 5px;
+    color: #fff;
+    margin: 5px 5px 0px 5px;
+}
+.search-button:hover,
+.search-button:active {
+    color: #ed4877;
+    background: #fff;
+}
+
+/* Search Box Placeholder text */
+::-webkit-input-placeholder {
+   color: #ecf0f1;
+}
+:-moz-placeholder {
+   color: #ecf0f1;
+}
+::-moz-placeholder {
+   color: #ecf0f1;
+}
+:-ms-input-placeholder {  
+   color: #ecf0f1;  
+}
+/* Header */
+
+.description {
+    width: 850px;
+    margin: 30px auto 0px auto;
+}
+
+table {
+    margin: 10px auto 10px auto;
+    border-collapse: collapse;
+}
+
+td {
+    border: 1px solid #999;
+    padding: 0.5rem;
+    text-align: left;
+}

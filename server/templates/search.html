@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>Scientific Data Search</title>
+    <link rel='stylesheet' href='/static/css/reset.css'>
+    <link rel='stylesheet' href='/static/css/index.css'>
+    <!--[if IE]>
+        <script src='http://html5shiv.googlecode.com/svn/trunk/html5.js'></script>
+    <![endif]-->
+</head>
+
+<!-- Title and search box -->
+<header class="jumbotron">
+  <h1 class="title"><a>EAGER</a></h1>
+  <div class="search-box-container">
+    <form action="./" method="get">
+        <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ query }}" autofocus>
+        <input type="submit" class="search-button" value="Search">
+        <table class="filter">
+		<tr>
+		<td>Field Name</td> <td align="center">Lower Bound</td> <td align="center">Upper Bound</td>
+		</tr>
+		<tr>
+		<td>value:</td>
+		<td><input name="mainValue_min" /></td>
+		<td><input name="mainValue_max" /></td>
+		</tr>
+		<tr>
+		<td>error:</td>
+		<td><input name="precision_min" /></td>
+		<td><input name="precision_max" /></td>
+		</tr>
+		<tr>
+		<td>magnitude:</td>
+		<td><input name="magnitude_min" /></td>
+		<td><input name="magnitude_max" /></td>
+		</tr>
+		<td>p-value:</td>
+		<td><input id="pvalue_min" /></td>
+		<td><input id="pvalue_max" /></td>
+		</table>
+    </form>
+  </div>
+</header>
+
+<!-- Listing of search results -->
+<main class="results-container">
+    {% if len == 0 %}
+    <p>No results found.</p>
+    {% endif  %}
+  <section class='results'>
+    {% for hit in hits %}
+    <article class='result'>
+      <h2>{{ hit.caption }}</h2>
+      <h3>From: {{ hit['article-title']}}</h3>
+      <p>{{hit.journal}}, {{hit.issn}}, {{hit.volume}}, {{hit.issue}}, {{hit.page}}, {{hit.date}}</p>
+      <p>
+          <b>Authors: </b>
+          <span>{{ ", ".join(hit.authors) }}</span>
+      </p>
+      <p>
+          <b>Keywords: </b>
+          <span>{{ ", ".join(hit.keywords) }}</span>
+      </p>
+      <br>
+      <table>
+          <thead>
+            {% for row in hit.header_rows %}
+              <tr>
+                {% for header in row %}
+                  <th>
+                    {{ header.value }}
+                  </th>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </thead>
+          <tbody>
+          {% for row in hit.data_rows %}
+          <tr>
+            {% for value in row %}
+              {% if value.highlight %}
+              <td class="highlight">
+              {{ value.text }}
+              </td>
+              {% else %}
+              <td>
+              {{ value.text }}
+              </td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+          {% endfor %}
+          </tbody>
+      </table>
+    </article>
+    {% endfor %}
+  </section>
+</main>
+
+<!-- Load resources -->
+</body>
+</html>

@@ -16,6 +16,9 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -33,6 +36,8 @@ public class ElasticSearchIndex extends Index {
     private String indexName;
     private int docToIndex;
     private String setting;
+
+    private DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     public ElasticSearchIndex(String host, String port, String clusterName, String indexName) {
         Settings settings = ImmutableSettings.settingsBuilder()
@@ -123,7 +128,8 @@ public class ElasticSearchIndex extends Index {
 
     private void executeBulk() {
         BulkResponse res = bulkRequest.execute().actionGet();
-        System.err.println(res.getItems().length + " docs indexed.");
+        System.err.println(String.format("%s - [ %d docs indexed ]",
+                dateFormat.format(Calendar.getInstance().getTime()), res.getItems().length));
         System.err.flush();
         if (res.hasFailures()) {
             System.err.println(res.buildFailureMessage());
