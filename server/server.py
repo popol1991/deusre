@@ -39,7 +39,7 @@ def search():
         text_response = es.text_search(query, page, size)
     res += text_response.filter(params)
     page += 1
-    return render_template('search.html', hits=res, len=len(res), query=params['q'])
+    return render_template('search.html', hits=res, len=len(res), params=params)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)

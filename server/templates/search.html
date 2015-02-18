@@ -5,40 +5,41 @@
     <title>Scientific Data Search</title>
     <link rel='stylesheet' href='/static/css/reset.css'>
     <link rel='stylesheet' href='/static/css/index.css'>
-    <!--[if IE]>
-        <script src='http://html5shiv.googlecode.com/svn/trunk/html5.js'></script>
-    <![endif]-->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/parsley.min.js"></script>
 </head>
 
 <!-- Title and search box -->
 <header class="jumbotron">
   <h1 class="title"><a>EAGER</a></h1>
   <div class="search-box-container">
-    <form action="./" method="get">
-        <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ query }}" autofocus>
+      <form data-parsley-validate action="./" method="get">
         <input type="submit" class="search-button" value="Search">
+        <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
         <table class="filter">
 		<tr>
 		<td>Field Name</td> <td align="center">Lower Bound</td> <td align="center">Upper Bound</td>
 		</tr>
 		<tr>
 		<td>value:</td>
-		<td><input name="mainValue_min" /></td>
-		<td><input name="mainValue_max" /></td>
+        <td><input data-parsley-type="number" name="mainValue_min" value="{{ params['mainValue_min'] }}"/></td>
+		<td><input data-parsley-type="number" name="mainValue_max" value="{{ params['mainValue_max'] }}"/></td>
 		</tr>
 		<tr>
 		<td>error:</td>
-		<td><input name="precision_min" /></td>
-		<td><input name="precision_max" /></td>
+		<td><input data-parsley-type="number" name="precision_min" value="{{ params['precision_min'] }}"/></td>
+		<td><input data-parsley-type="number" name="precision_max" value="{{ params['precision_max'] }}"/></td>
 		</tr>
 		<tr>
 		<td>magnitude:</td>
-		<td><input name="magnitude_min" /></td>
-		<td><input name="magnitude_max" /></td>
+		<td><input data-parsley-type="number" name="magnitude_min" value="{{ params['magnitude_min'] }}"/></td>
+		<td><input data-parsley-type="number" name="magnitude_max" value="{{ params['magnitude_max'] }}"/></td>
 		</tr>
+        <tr>
 		<td>p-value:</td>
-		<td><input id="pvalue_min" /></td>
-		<td><input id="pvalue_max" /></td>
+		<td><input data-parsley-type="number" id="pvalue_min" value="{{ params['pvalue_min'] }}"/></td>
+		<td><input data-parsley-type="number" id="pvalue_max" value="{{ params['pvalue_max'] }}"/></td>
+        </tr>
 		</table>
     </form>
   </div>
