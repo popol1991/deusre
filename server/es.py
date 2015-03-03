@@ -1,4 +1,5 @@
 from elasticsearch import Elasticsearch
+from operator import itemgetter
 
 FIELDS = ["article-title", "caption", "citations", "data_*.row_header", "footnotes", "headers.header_*", "headings",
           "keywords"]
@@ -7,7 +8,7 @@ FEATURES = set(["accuracy", "magnitude", "mainValue", "precision", "pvalue"])
 
 class ES():
     def __init__(self):
-        self.es = Elasticsearch([{"host":"compute-1-33"}])
+        self.es = Elasticsearch([{"host":"localhost"}])
 
     def text_search(self, q, page, size):
         query = {
@@ -54,10 +55,11 @@ class ESResponse():
     def size(self):
         return len(self.hits);
 
-    def filter(self, params):
+    def rerank(self, params):
         hits = [self.convert(hit) for hit in self.hits]
-        hits = self.filter_highlight(hits, params)
-        return hits
+        filtered = self.filter_highlight(hits, params)
+        reranked = [e[0] for e in sorted(filtered, key=itemgetter(1), reverse=True)]
+        return reranked
 
     def filter_highlight(self, hits, params):
         filtered = []
@@ -75,18 +77,22 @@ class ESResponse():
                 if len(rows) == 0:
                     height = len(hit['data_rows'])
                     rows = range(height)
-                matched = False
+                matched = 0
+                total = 0
                 for col in columns:
                     for row in rows:
+                        total += 1
                         data = hit['data_rows']
                         if row < len(data) and col < len(data[row]):
                             cell_val = hit['data_rows'][row][col]
                             if self.satisfy(cell_val, params):
-                                matched = True
+                                matched += 1
                                 cell_val['highlight'] = True
                             hit['data_rows'][row][col] = cell_val
                 if matched:
-                    filtered.append(hit)
+                    score = matched * 1.0 / total
+                    hit['score'] = score
+                    filtered.append((hit, score))
         return filtered
 
     def satisfy(self, cell, params):

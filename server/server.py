@@ -37,7 +37,7 @@ def search():
         text_response = es.match_all(page, size)
     else:
         text_response = es.text_search(query, page, size)
-    res += text_response.filter(params)
+    res += text_response.rerank(params)
     page += 1
     return render_template('search.html', hits=res, len=len(res), params=params)
 

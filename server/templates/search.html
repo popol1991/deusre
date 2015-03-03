@@ -53,6 +53,7 @@
   <section class='results'>
     {% for hit in hits %}
     <article class='result'>
+        <h2>{{ hit.score }}</h2>
       <h2>{{ hit.caption }}</h2>
       <h3>From: {{ hit['article-title']}}</h3>
       <p>{{hit.journal}}, {{hit.issn}}, {{hit.volume}}, {{hit.issue}}, {{hit.page}}, {{hit.date}}</p>
