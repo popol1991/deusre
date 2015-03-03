@@ -7,7 +7,7 @@ FEATURES = set(["accuracy", "magnitude", "mainValue", "precision", "pvalue"])
 
 class ES():
     def __init__(self):
-        self.es = Elasticsearch([{"host":"localhost"}])
+        self.es = Elasticsearch([{"host":"compute-1-33"}])
 
     def text_search(self, q, page, size):
         query = {

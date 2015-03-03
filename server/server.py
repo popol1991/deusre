@@ -27,7 +27,7 @@ def search():
     res = []
     params = request.args
     if len(params) == 0:
-        return render_template('search.html', hits=[], query="")
+        return render_template('search.html', hits=[], query="", params={})
     size = DEFAULT_SIZE
     if 'size' in params:
         size = params['size']
