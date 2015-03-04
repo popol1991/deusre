@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>Scientific Data Search</title>
+    <link rel='stylesheet' href='/static/css/reset.css'>
+    <link rel='stylesheet' href='/static/css/index.css'>
+    <!--[if IE]>
+        <script src='http://html5shiv.googlecode.com/svn/trunk/html5.js'></script>
+    <![endif]-->
+</head>
+
+<!-- Title and search box -->
+<header class="jumbotron">
+  <h1 class="title"><a>EAGER</a></h1>
+  <div class="search-box-container">
+    <form action="." method="get">
+        <input type='text' name="query" class="search-box" placeholder="Keywords" autofocus>
+        <input type="submit" class="search-button" value="Search">
+    </form>
+  </div>
+</header>
+
+<!-- Listing of search results -->
+<main class="federate-results-container">
+  <section class='results'>
+    {% for hit in hits %}
+    <article class='result'>
+    <a href="item/{{ hit.id }}">{{ hit.name }}</a>
+    </article>
+    {% endfor %}
+  </section>
+</main>
+
+<!-- Load resources -->
+<script src='js/calaca.js' type='static/text/javascript'></script>
+</body>
+</html>

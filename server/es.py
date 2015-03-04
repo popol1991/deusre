@@ -1,3 +1,5 @@
+import time
+import datetime
 from elasticsearch import Elasticsearch
 from operator import itemgetter
 
@@ -7,8 +9,37 @@ FEATURES = set(["accuracy", "magnitude", "mainValue", "precision", "pvalue"])
 
 
 class ES():
+    """ A wrapper class for elasticsearch """
     def __init__(self):
         self.es = Elasticsearch([{"host":"localhost"}])
+
+    def existed(self, index):
+        return self.es.indices.exists(index=index)
+
+    def create(self, index):
+        self.es.indices.create(index=index)
+
+    def delete_all(self, index):
+        self.es.delete_by_query(index=index, body={'query': {'match_all':{}}})
+
+    def refresh(self, index):
+        self.es.indices.refresh(index=index)
+
+    def search(self, index, body=None, docid=None):
+        if docid is None:
+            return self.es.search(index=index, body=body)
+        else:
+            return self.es.get(index=index, doc_type='_all', id=docid)
+
+    def index_tmp_doc(self, index, doc_id, dbname, doc):
+        body = {
+            'title': doc['title'],
+            'source': dbname,
+            'text': doc['source'].get_text(),
+            'xml': doc['source'].prettify(),
+            'timestamp': datetime.datetime.fromtimestamp(time.time())
+        }
+        self.es.index(index=index, doc_type='doc', id=doc_id, body=body)
 
     def text_search(self, q, page, size):
         query = {

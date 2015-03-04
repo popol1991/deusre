@@ -119,6 +119,12 @@ form {
   padding-top: 200px;
   padding-bottom: 30px;
 }
+.federate-results-container {
+  height: 100%;
+  width: 100%;
+  padding-top:30px;
+  padding-bottom: 30px;
+}
 .no-results {
   text-align: center;
   font-size: 25px;
