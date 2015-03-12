@@ -4,6 +4,7 @@ import requests
 from werkzeug import SharedDataMiddleware
 from es import ES
 import wrapper
+import json
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_SIZE = 20
 FEDERATE_INDEX = "federate"
+ELSEVIER_INDEX = "deusre"
 FEDERATE_SIZE = 10
 DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed", "Brain"]
 WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
@@ -31,11 +33,18 @@ def route(path):
 @app.route("/deusre/federate/item/<path:path>")
 def item(path):
     """ Fetch federated item with id. """
-    doc = es.search(index=FEDERATE_INDEX, docid=path)
-    xml = doc['_source']['xml']
-    template = render_template('item.xml', content = xml)
+    index, id = path.split(':')
+    if index == 'federate':
+        doc = es.search(index=FEDERATE_INDEX, docid=id)
+        xml = doc['_source']['xml']
+        type = "application/xml"
+    else:
+        doc = es.search(index=ELSEVIER_INDEX, docid=id)
+        xml = json.dumps(doc['_source'], indent=4, separators=(",<br>",":"))
+        type = "text/html"
+    template = render_template('item.xml', content=xml)
     response = make_response(template)
-    response.headers["Content-Type"] = "application/xml"
+    response.headers["Content-Type"] = type
     response.headers["Accept-Charset"] = "utf-8"
     return response
 
@@ -60,17 +69,48 @@ def federate():
             doc_id += 1
     es.refresh(index=FEDERATE_INDEX)
     res = es.search(index=FEDERATE_INDEX, body={'query':{'match':{'text':query}}, 'size':1000}, docid=None)
+    elsevier_res = search_elsevier(dict(q=query))
+    elsevier_hits = elsevier_res.hits_for_federate()
     hits = res['hits']['hits']
+    for hit in hits:
+        hit['_id'] = 'federate:'+hit['_id']
+    hits = merge(hits, elsevier_hits)
     hits = [dict(name=hit['_source']['title'],id=hit['_id']) for hit in hits]
     return render_template('federate.html', hits=hits)
 
 @app.route("/deusre/search/")
 def search():
     #: build structured query to elasticsearch
-    res = []
     params = request.args
     if len(params) == 0:
         return render_template('search.html', hits=[], query="", params={})
+    res = search_elsevier(params)
+    logger.info("Reranking...")
+    res = res.rerank(params)
+    logger.info("Rendering...")
+    return render_template('search.html', hits=res, len=len(res), params=params)
+
+def merge(hits1, hits2):
+    i = 0
+    j = 0
+    hits = []
+    while (i < len(hits1) and j < len(hits2)):
+        score1 = hits1[i]['_score']
+        score2 = hits2[j]['_score']
+        if (score1 > score2):
+            hits.append(hits1[i])
+            i += 1
+        else:
+            hits.append(hits2[j])
+            j += 1
+    if i < len(hits1):
+        hits += hits1[i:]
+    if j < len(hits2):
+        hits += hits2[j:]
+    return hits
+
+def search_elsevier(params):
+    res = []
     size = DEFAULT_SIZE
     if 'size' in params:
         size = params['size']
@@ -79,10 +119,11 @@ def search():
     if len(query) == 0:
         text_response = es.match_all(page, size)
     else:
+        logger.info("Search elasticsearch with query: {0}".format(query))
         text_response = es.text_search(query, page, size)
-    res += text_response.rerank(params)
+    return text_response
     page += 1
-    return render_template('search.html', hits=res, len=len(res), params=params)
+    return res
 
 def initindex():
     logger.info('Initializing federated index.')

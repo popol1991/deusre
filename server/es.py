@@ -3,9 +3,13 @@ import datetime
 from elasticsearch import Elasticsearch
 from operator import itemgetter
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 FIELDS = ["article-title", "caption", "citations", "data_*.row_header", "footnotes", "headers.header_*", "headings",
           "keywords"]
-FEATURES = set(["accuracy", "magnitude", "mainValue", "precision", "pvalue"])
+FEATURES = ["accuracy", "magnitude", "mainValue", "precision", "pvalue"]
 
 
 class ES():
@@ -77,11 +81,15 @@ class ESResponse():
     def __init__(self, res, match_all=False):
         self.match_all = match_all
         self.hits = []
+        self.scores = []
+        self.ids = []
         for hit in res['hits']['hits']:
             jsn = hit['_source']
             if 'highlight' in hit:
                 jsn['highlight'] = hit['highlight']
             self.hits.append(jsn)
+            self.scores.append(hit['_score'])
+            self.ids.append(hit['_id'])
 
     def size(self):
         return len(self.hits);
@@ -108,38 +116,70 @@ class ESResponse():
                 if len(rows) == 0:
                     height = len(hit['data_rows'])
                     rows = range(height)
-                matched = 0
-                total = 0
+                col_scores = []
                 for col in columns:
-                    for row in rows:
-                        total += 1
-                        data = hit['data_rows']
-                        if row < len(data) and col < len(data[row]):
-                            cell_val = hit['data_rows'][row][col]
-                            if self.satisfy(cell_val, params):
-                                matched += 1
-                                cell_val['highlight'] = True
-                            hit['data_rows'][row][col] = cell_val
-                if matched:
-                    score = matched * 1.0 / total
-                    hit['score'] = score
-                    filtered.append((hit, score))
+                    logger.info("column")
+                    #: iterate over filters as terms here
+                    #: need to figure out how to combine scores from different columns
+                    #: use the number of matched cells as term frequency and column length as doclen
+                    tf = 0
+                    doclen = 0
+                    feature_scores = []
+                    for feature in FEATURES:
+                        if not self.has_feature(feature, params):
+                            continue
+                        logger.info("feature")
+                        for row in rows:
+                            doclen += 1
+                            data = hit['data_rows']
+                            if row < len(data) and col < len(data[row]):
+                                cell_val = hit['data_rows'][row][col]
+                                if self.satisfy(cell_val, params, feature):
+                                    tf += 1
+                                    if 'highlight' not in cell_val:
+                                        cell_val['highlight'] = 1
+                                    else:
+                                        cell_val['highlight'] += 1
+                                hit['data_rows'][row][col] = cell_val
+                        score = tf * 1.0 / doclen
+                        feature_scores.append(score)
+                    score = self.combine_filter(feature_scores)
+                    col_scores.append(score)
+                score = self.combine(col_scores)
+                hit['score'] = score
+                filtered.append((hit, score))
         return filtered
 
-    def satisfy(self, cell, params):
+    def combine_filter(self, scores):
+        prod = 1
+        for s in scores:
+            prod *= s
+        return prod
+
+    def combine(self, scores):
+        return max(scores)
+
+    def has_feature(self, feature, params):
+        minimum = "_".join([feature, "min"])
+        maximum = "_".join([feature, "max"])
+        min_not_exist = (minimum not in params or len(params[minimum]) == 0)
+        max_not_exist = (maximum not in params or len(params[maximum]) == 0)
+        if (min_not_exist and max_not_exist):
+            return False
+        else:
+            return True
+
+    def satisfy(self, cell, params, feature):
         if abs(float(cell['type']) + 1) < 0.000001:
             return False
-        for criteria in params:
-            if len(params[criteria]) > 0:
-                info = criteria.split('_')
-                f = info[0]
-                if f in FEATURES:
-                    bound = info[1]
-                    if f in cell and cell[f] is not None:
-                        if bound == 'min' and cell[f] < float(params[criteria]) \
-                                or bound == 'max' and cell[f] > float(params[criteria]):
-                            return False
-        return True
+        minimum = "_".join([feature, "min"])
+        maximum = "_".join([feature, "max"])
+        min_not_exist = (minimum not in params or len(params[minimum]) == 0)
+        max_not_exist = (maximum not in params or len(params[maximum]) == 0)
+        if (min_not_exist or cell[feature] > float(params[minimum])) \
+                and (max_not_exist or cell[feature] < float(params[maximum])):
+            return True
+        return False
 
     def convert(self, hit):
         # header
@@ -174,3 +214,14 @@ class ESResponse():
             data_rows[idx] = row
         hit['data_rows'] = data_rows
         return hit
+
+    def hits_for_federate(self):
+        fhits = []
+        for i in range(len(self.hits)):
+            hit = {
+                '_score': self.scores[i],
+                '_source': dict(title="Elsevier: "+self.hits[i]['caption']),
+                '_id': "elsevier:"+self.ids[i]
+            }
+            fhits.append(hit)
+        return fhits

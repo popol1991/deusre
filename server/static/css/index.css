@@ -201,8 +201,24 @@ a.toggle {
     z-index: 10;
 }
 
-.highlight {
-    background: #FFFBCC;
+.highlight_1 {
+    background: #FFE5CC;
+}
+
+.highlight_2 {
+    background: #FFCC99;
+}
+
+.highlight_3 {
+    background: #FFB266;
+}
+
+.highlight_4 {
+    background: #FF9933;
+}
+
+.highlight_5 {
+    background: #FF8000;
 }
 
 /* parsely */

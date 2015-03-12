@@ -82,15 +82,9 @@
           {% for row in hit.data_rows %}
           <tr>
             {% for value in row %}
-              {% if value.highlight %}
-              <td class="highlight">
-              {{ value.text }}
-              </td>
-              {% else %}
-              <td>
-              {{ value.text }}
-              </td>
-              {% endif %}
+                <td id="cell" class="highlight_{{ value.highlight }}">
+                {{ value.text }}
+                </td>
             {% endfor %}
           </tr>
           {% endfor %}
