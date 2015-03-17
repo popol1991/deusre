@@ -22,7 +22,7 @@ WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
 app = Flask(__name__)
 app.wsgi_app = SharedDataMiddleware(app.wsgi_app,
     {'/static': '/deusre/search/static'})
-es = ES()
+es = None
 
 @app.route("/deusre/api/<path:path>")
 def route(path):
@@ -152,5 +152,8 @@ def initindex():
         logger.info('Index has already existed.')
 
 if __name__ == "__main__":
+    with open('config.txt') as fin:
+        server = fin.readline().strip()
+    es = ES(server)
     initindex()
     app.run(host="0.0.0.0", port=8080, debug=True)
