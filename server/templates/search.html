@@ -37,8 +37,43 @@
 		</tr>
         <tr>
 		<td>p-value:</td>
-		<td><input data-parsley-type="number" id="pvalue_min" value="{{ params['pvalue_min'] }}"/></td>
-		<td><input data-parsley-type="number" id="pvalue_max" value="{{ params['pvalue_max'] }}"/></td>
+		<td><input data-parsley-type="number" name="pvalue_min" value="{{ params['pvalue_min'] }}"/></td>
+		<td><input data-parsley-type="number" name="pvalue_max" value="{{ params['pvalue_max'] }}"/></td>
+        </tr>
+        <tr>
+        <td>intager ratio:</td>
+        <td><input data-parsley-type="number" name="int_ratio_min" value="{{ params['int_ratio_min'] }}"/></td>
+        <td><input data-parsley-type="number" name="int_ratio_max" value="{{ params['int_ratio_max'] }}"/></td>
+        </tr>
+        <tr>
+        <td>real ratio:</td>
+        <td><input data-parsley-type="number" name="float_ratio_min" value="{{ params['float_ratio_min'] }}"/></td>
+        <td><input data-parsley-type="number" name="float_ratio_max" value="{{ params['float_ratio_max'] }}"/></td>
+        </tr>
+        <tr>
+        <td>mean:</td>
+        <td><input data-parsley-type="number" name="mean_min" value="{{ params['mean_min'] }}"/></td>
+        <td><input data-parsley-type="number" name="mean_max" value="{{ params['mean_max'] }}"/></td>
+        </tr>
+        <tr>
+        <td>standard deviation:</td>
+        <td><input data-parsley-type="number" name="std_min" value="{{ params['std_min'] }}"/></td>
+        <td><input data-parsley-type="number" name="std_max" value="{{ params['std_max'] }}"/></td>
+        </tr>
+        <tr>
+        <td>range:</td>
+        <td><input data-parsley-type="number" name="range_min" value="{{ params['range_min'] }}"/></td>
+        <td><input data-parsley-type="number" name="range_max" value="{{ params['range_max'] }}"/></td>
+        </tr>
+        <tr>
+        <td>accuracy:</td>
+        <td><input data-parsley-type="number" name="accuracy_min" value="{{ params['accuracy_min'] }}"/></td>
+        <td><input data-parsley-type="number" name="accuracy_max" value="{{ params['accuracy_max'] }}"/></td>
+        </tr>
+        <tr>
+        <td>magnitude:</td>
+        <td><input data-parsley-type="number" name="mag_min" value="{{ params['mag_min'] }}"/></td>
+        <td><input data-parsley-type="number" name="mag_max" value="{{ params['mag_max'] }}"/></td>
         </tr>
 		</table>
     </form>

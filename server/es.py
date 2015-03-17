@@ -5,7 +5,8 @@ from operator import itemgetter
 
 FIELDS = ["article-title", "caption", "citations", "data_*.row_header", "footnotes", "headers.header_*", "headings",
           "keywords"]
-FEATURES = ["accuracy", "magnitude", "mainValue", "precision", "pvalue"]
+CELL_FEATURE = ["magnitude", "mainValue", "precision", "pvalue"]
+COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accuracy", "magnitude"]
 
 
 class ES():
@@ -103,6 +104,7 @@ class ESResponse():
             if self.match_all or 'highlight' in hit:
                 columns = []
                 rows = []
+                match_column = False
                 if not self.match_all:
                     hl = hit['highlight']
                     columns = [int(key.split('_')[1]) for key in hl if key.startswith('headers')]
@@ -111,6 +113,7 @@ class ESResponse():
                     width = len(hit['data_rows'][0])
                     columns = range(width)
                 if len(rows) == 0:
+                    match_column = True
                     height = len(hit['data_rows'])
                     rows = range(height)
                 col_scores = []
@@ -121,7 +124,7 @@ class ESResponse():
                     tf = 0
                     doclen = 0
                     feature_scores = []
-                    for feature in FEATURES:
+                    for feature in CELL_FEATURE:
                         if not self.has_feature(feature, params):
                             continue
                         for row in rows:
@@ -129,7 +132,7 @@ class ESResponse():
                             data = hit['data_rows']
                             if row < len(data) and col < len(data[row]):
                                 cell_val = hit['data_rows'][row][col]
-                                if self.satisfy(cell_val, params, feature):
+                                if not self.is_text(cell_val) and self.satisfy(cell_val, params, feature):
                                     tf += 1
                                     if 'highlight' not in cell_val:
                                         cell_val['highlight'] = 1
@@ -138,12 +141,35 @@ class ESResponse():
                                 hit['data_rows'][row][col] = cell_val
                         score = tf * 1.0 / doclen
                         feature_scores.append(score)
-                    score = self.combine_filter(feature_scores)
-                    col_scores.append(score)
+                    cellscore = self.combine_filter(feature_scores)
+
+                    columnscore = 1
+                    matched = 0
+                    total = 0
+                    for feature in COLUMN_FEATURE:
+                        if not self.has_feature(feature, params):
+                            continue
+                        key = "col_{0}".format(col)
+                        if 'column_stats' not in hit or key not in hit['column_stats']:
+                            continue
+                        total += 1
+                        if self.satisfy(hit['column_stats'][key], params, feature):
+                            matched += 1
+                    if total == 0:
+                        columnscore = 1
+                    else:
+                        columnscore = matched * 1.0 / total
+
+                    col_scores.append(cellscore * columnscore)
                 score = self.combine(col_scores)
                 hit['score'] = score
                 filtered.append((hit, score))
         return filtered
+
+    def is_text(self, cell):
+        if (cell['type'] + 1 < 0.000001):
+            return True
+        return False
 
     def combine_filter(self, scores):
         prod = 1
@@ -165,8 +191,6 @@ class ESResponse():
             return True
 
     def satisfy(self, cell, params, feature):
-        if abs(float(cell['type']) + 1) < 0.000001:
-            return False
         minimum = "_".join([feature, "min"])
         maximum = "_".join([feature, "max"])
         min_not_exist = (minimum not in params or len(params[minimum]) == 0)
