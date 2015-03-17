@@ -3,10 +3,6 @@ import datetime
 from elasticsearch import Elasticsearch
 from operator import itemgetter
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 FIELDS = ["article-title", "caption", "citations", "data_*.row_header", "footnotes", "headers.header_*", "headings",
           "keywords"]
 FEATURES = ["accuracy", "magnitude", "mainValue", "precision", "pvalue"]
@@ -39,6 +35,7 @@ class ES():
         body = {
             'title': doc['title'],
             'source': dbname,
+            'url' : doc['url'],
             'text': doc['source'].get_text(),
             'xml': doc['source'].prettify(),
             'timestamp': datetime.datetime.fromtimestamp(time.time())
@@ -118,7 +115,6 @@ class ESResponse():
                     rows = range(height)
                 col_scores = []
                 for col in columns:
-                    logger.info("column")
                     #: iterate over filters as terms here
                     #: need to figure out how to combine scores from different columns
                     #: use the number of matched cells as term frequency and column length as doclen
@@ -128,7 +124,6 @@ class ESResponse():
                     for feature in FEATURES:
                         if not self.has_feature(feature, params):
                             continue
-                        logger.info("feature")
                         for row in rows:
                             doclen += 1
                             data = hit['data_rows']

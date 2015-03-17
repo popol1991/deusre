@@ -15,6 +15,7 @@ class Wrapper():
 class DryadWrapper(Wrapper):
     def __init__(self):
         self.url = "http://datadryad.org/solr/search/select/"
+        self.sourceurl = "http://datadryad.org/resource/"
 
     def raw_search(self, query, size=DEFAULT_SIZE):
         params = {
@@ -28,8 +29,11 @@ class DryadWrapper(Wrapper):
         retlist = []
         for doc in doclist:
             titleNode = doc.find("arr", {"name":"dc.title"})
-            if titleNode is not None:
-                retlist.append(dict(source=doc, title="Dryad: "+titleNode.find("str").get_text()))
+            idNode = doc.find("arr", {"name":"dc.identifier"})
+            if titleNode is not None and idNode is not None:
+                retlist.append(dict(source=doc,
+                                    title="Dryad: "+titleNode.find("str").get_text(),
+                                    url=self.sourceurl + idNode.find("str").get_text()))
         return retlist
 
     def search(self, query, size=DEFAULT_SIZE):
@@ -45,6 +49,7 @@ class HarvardWrapper(Wrapper):
     def __init__(self):
         self.docurl = "https://thedata.harvard.edu/dvn/api/metadataSearch/"
         self.metaurl = "https://thedata.harvard.edu/dvn/api/metadata/"
+        self.sourceurl = "https://thedata.harvard.edu/dvn/faces/study/StudyPage.xhtml?globalId="
         self.size = 4
 
     def raw_search(self, query, size=DEFAULT_SIZE):
@@ -60,8 +65,11 @@ class HarvardWrapper(Wrapper):
             meta = urllib2.urlopen(self.metaurl+docid).read()
             meta = BeautifulSoup(meta)
             titleNode = meta.find("titl")
+            idNode = meta.find("idno", {"agency":"handle"})
             if titleNode is not None:
-                retlist.append(dict(source=meta, title="Harvard: " + titleNode.get_text()))
+                retlist.append(dict(source=meta,
+                                    title="Harvard: " + titleNode.get_text(),
+                                    url=self.sourceurl+idNode.get_text()))
         return retlist
 
     def search(self, query, size=DEFAULT_SIZE):
@@ -80,6 +88,7 @@ class PubmedWrapper(Wrapper):
     def __init__(self):
         self.docurl = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
         self.metaurl = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+        self.sourceurl = "http://www.ncbi.nlm.nih.gov/pubmed/"
         self.size = 4
 
     def raw_search(self, query, size=DEFAULT_SIZE):
@@ -106,7 +115,9 @@ class PubmedWrapper(Wrapper):
             meta = BeautifulSoup(content)
             titleNode = meta.find("articletitle")
             if titleNode is not None:
-                retlist.append(dict(source=meta,title="Pubmed: "+ titleNode.get_text()))
+                retlist.append(dict(source=meta,
+                                    title="Pubmed: "+ titleNode.get_text(),
+                                    url=self.sourceurl + docid))
         return retlist
 
     def search(self, query, size=DEFAULT_SIZE):
@@ -128,6 +139,7 @@ class NIFWrapper(Wrapper):
     def __init__(self):
         self.docurl = "http://nif-services.neuinfo.org/servicesv1/v1/federation/search/"
         self.metaurl = "http://nif-services.neuinfo.org/servicesv1/v1/federation/data/"
+        self.sourceurl = "https://www.neuinfo.org/mynif/search.php"
         self.size = 4
 
     def raw_search(self, query, size):
@@ -154,8 +166,17 @@ class NIFWrapper(Wrapper):
             url = "?".join([url, urlparam])
             response = urllib2.urlopen(url).read()
             soup = BeautifulSoup(response)
-            retlist.append(dict(source=soup.find('results'), title="NIF: {0} documents from {1} in {2} category."
-                           .format(count.get_text(), db_name, category)))
+            params = {
+                'q': query,
+                't': 'indexable',
+                'nif': docid
+            }
+            urlparam = urllib.urlencode(params)
+            url = "?".join([self.sourceurl, urlparam])
+            retlist.append(dict(source=soup.find('results'),
+                                title="NIF: {0} documents from {1} in {2} category."
+                           .format(count.get_text(), db_name, category),
+                                url=url))
         return retlist
 
     def search(self, query, size=DEFAULT_SIZE):

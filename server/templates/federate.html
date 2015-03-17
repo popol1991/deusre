@@ -24,9 +24,9 @@
 <!-- Listing of search results -->
 <main class="federate-results-container">
   <section class='results'>
-    {% for hit in hits %}
+    {% for pos, hit in hits %}
     <article class='result'>
-    <a href="item/{{ hit.id }}">{{ hit.name }}</a>
+    <a href="item/{{ pos }}:{{ hit.id }}">{{ hit.name }}</a>
     </article>
     {% endfor %}
   </section>

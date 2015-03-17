@@ -16,7 +16,10 @@ import javax.xml.xpath.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.DoubleSummaryStatistics;
 import java.util.Hashtable;
+import java.util.List;
 
 /**
  * Created by Kyle on 2/4/15.
@@ -104,7 +107,56 @@ public class XMLParser extends Parser {
         // headers and rows
         retTable.put("headers", getHeadersFromXml(doc, "headers", "header"));
         retTable.put("data", getDataRowsFromXml(doc));
+        retTable.put("column_stats", getColumnStats(doc));
         return retTable;
+    }
+
+    private JSONObject getColumnStats(Element doc) {
+        JSONObject columnStats = new JSONObject();
+        NodeList nList = doc.getElementsByTagName("row");
+        List<List<String>> rowList = new ArrayList<>();
+        for (int i = 0; i < nList.getLength(); i++) {
+            Element rowNode = (Element) nList.item(i);
+            NodeList cellList = rowNode.getElementsByTagName("value");
+            if (cellList.getLength() > 0) {
+                List<String> row = new ArrayList<>();
+                for (int j = 0; j < cellList.getLength(); j++) {
+                    String text = cellList.item(j).getTextContent();
+                    row.add(text);
+                }
+                rowList.add(row);
+            }
+        }
+        List<List<String>> columnList = getColumns(rowList);
+        for (int col = 0; col < columnList.size(); col++) {
+            List<String> column = columnList.get(col);
+            Hashtable<String, String> features = generator.column2Vector(column);
+            JSONObject colStat = new JSONObject();
+            for (String key : features.keySet()) {
+                colStat.put(key, Double.parseDouble(features.get(key)));
+            }
+            columnStats.put("col_" + col, colStat);
+        }
+        return columnStats;
+    }
+
+    private List<List<String>> getColumns(List<List<String>> rowList) {
+        List<List<String>> columnList = new ArrayList<>();
+        int width = rowList.get(0).size();
+        for (List<String> row : rowList) {
+            if (row.size() != width) {
+                // return empty list
+                return columnList;
+            }
+        }
+        for (int col = 0; col < width; col++) {
+            List<String> column = new ArrayList<>();
+            for (List<String> row : rowList) {
+                column.add(row.get(col));
+            }
+            columnList.add(column);
+        }
+        return columnList;
     }
 
     private JSONObject getDataRowsFromXml(Element doc) {

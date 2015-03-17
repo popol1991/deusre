@@ -1,5 +1,7 @@
+import base64
+import os
 from flask import Flask
-from flask import request, render_template, make_response
+from flask import redirect, request, render_template, make_response
 import requests
 from werkzeug import SharedDataMiddleware
 from es import ES
@@ -14,7 +16,7 @@ DEFAULT_SIZE = 20
 FEDERATE_INDEX = "federate"
 ELSEVIER_INDEX = "deusre"
 FEDERATE_SIZE = 10
-DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed", "Brain"]
+DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed"]
 WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
 
 app = Flask(__name__)
@@ -32,14 +34,17 @@ def route(path):
 
 @app.route("/deusre/federate/item/<path:path>")
 def item(path):
+    userid = request.cookies.get('userid')
     """ Fetch federated item with id. """
-    index, id = path.split(':')
+    pos, index, id = path.split(':')
     if index == 'federate':
         doc = es.search(index=FEDERATE_INDEX, docid=id)
-        xml = doc['_source']['xml']
-        type = "application/xml"
+        url = doc['_source']['url']
+        logger.info("User {0} clicked result {1} with url {2}".format(userid, pos, url))
+        return redirect(url)
     else:
         doc = es.search(index=ELSEVIER_INDEX, docid=id)
+        logger.info("User {0} clicked result {1} with local id {2}".format(userid, pos, id))
         xml = json.dumps(doc['_source'], indent=4, separators=(",<br>",":"))
         type = "text/html"
     template = render_template('item.xml', content=xml)
@@ -51,18 +56,26 @@ def item(path):
 @app.route("/deusre/federate/")
 def federate():
     #: federated search of different data repositories
+    # set cookies
+    if 'userid' not in request.cookies:
+        userid = base64.b64encode(os.urandom(16))
+        logger.info("New user. Set userid to " + userid)
+    else:
+        userid = request.cookies.get('userid')
+        logger.info("User {0} logged in.".format(userid))
+    # empty page
     if 'query' not in request.args:
         return render_template('federate.html', hits=[])
+    # start to fetch result from repos
     query = request.args['query']
+    logger.info("User: {0}, Query: {1}".format(userid, query))
     doc_id = 0
     es.delete_all(index=FEDERATE_INDEX)
-    alldoclist = []
     for i in range(len(WRAPPER_LIST)):
         db = WRAPPER_LIST[i]
         dbname = DB_LIST[i]
         logger.info("Fetching results from {0}.".format(dbname))
         doclist = db.raw_search(query, size=FEDERATE_SIZE)
-        alldoclist += [doc['source'] for doc in doclist]
         logger.info("{0} results returned".format(len(doclist)))
         for doc in doclist:
             es.index_tmp_doc(index=FEDERATE_INDEX, doc_id=doc_id, dbname=dbname, doc=doc)
@@ -76,7 +89,11 @@ def federate():
         hit['_id'] = 'federate:'+hit['_id']
     hits = merge(hits, elsevier_hits)
     hits = [dict(name=hit['_source']['title'],id=hit['_id']) for hit in hits]
-    return render_template('federate.html', hits=hits)
+    # build result
+    template = render_template('federate.html', hits=enumerate(hits))
+    resp = make_response(template)
+    resp.set_cookie('userid', userid)
+    return resp
 
 @app.route("/deusre/search/")
 def search():
