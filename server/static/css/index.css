@@ -94,7 +94,7 @@ form {
 
 .filter {
     margin-top: 20px;
-    width: 450px;
+    width: 540px;
 }
 
 /* Search Box Placeholder text */
@@ -257,3 +257,6 @@ textarea.parsley-error {
   opacity: 1;
 }
 
+.dummy {
+    opacity: 0.4;
+}

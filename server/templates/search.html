@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang='en' ng-app="filter">
 <head>
     <meta charset='utf-8'>
     <title>Scientific Data Search</title>
@@ -7,7 +7,8 @@
     <link rel='stylesheet' href='/static/css/index.css'>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/parsley.min.js"></script>
-
+    <script src="/static/js/angular.min.js"></script>
+    <script src="/static/js/filter.js"></script>
     <script>
         function toggle(id) {
             $("tbody#"+id).toggle();
@@ -18,69 +19,23 @@
 <!-- Title and search box -->
 <header class="jumbotron">
   <h1 class="title"><a>EAGER</a></h1>
-  <div class="search-box-container">
+  <div class="search-box-container" data-ng-controller='filterCtrl'>
       <form data-parsley-validate action="./" method="get">
         <input type="submit" class="search-button" value="Search">
         <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
         <table class="filter">
-		<tr>
-		<td>Field Name</td> <td align="center">Lower Bound</td> <td align="center">Upper Bound</td>
-		</tr>
-		<tr>
-		<td>value:</td>
-        <td><input data-parsley-type="number" name="mainValue_min" value="{{ params['mainValue_min'] }}"/></td>
-		<td><input data-parsley-type="number" name="mainValue_max" value="{{ params['mainValue_max'] }}"/></td>
-		</tr>
-		<tr>
-		<td>error:</td>
-		<td><input data-parsley-type="number" name="precision_min" value="{{ params['precision_min'] }}"/></td>
-		<td><input data-parsley-type="number" name="precision_max" value="{{ params['precision_max'] }}"/></td>
-		</tr>
-		<tr>
-		<td>magnitude:</td>
-		<td><input data-parsley-type="number" name="magnitude_min" value="{{ params['magnitude_min'] }}"/></td>
-		<td><input data-parsley-type="number" name="magnitude_max" value="{{ params['magnitude_max'] }}"/></td>
+		<tr ng-repeat="filter in filterlist">
+            <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
+            </select></td>
+            <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min" value="{{ params['mainValue_min'] }}"/></td>
+            <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max" value="{{ params['mainValue_max'] }}"/></td>
 		</tr>
         <tr>
-		<td>p-value:</td>
-		<td><input data-parsley-type="number" name="pvalue_min" value="{{ params['pvalue_min'] }}"/></td>
-		<td><input data-parsley-type="number" name="pvalue_max" value="{{ params['pvalue_max'] }}"/></td>
-        </tr>
-        <tr>
-        <td>intager ratio:</td>
-        <td><input data-parsley-type="number" name="int_ratio_min" value="{{ params['int_ratio_min'] }}"/></td>
-        <td><input data-parsley-type="number" name="int_ratio_max" value="{{ params['int_ratio_max'] }}"/></td>
-        </tr>
-        <tr>
-        <td>real ratio:</td>
-        <td><input data-parsley-type="number" name="float_ratio_min" value="{{ params['float_ratio_min'] }}"/></td>
-        <td><input data-parsley-type="number" name="float_ratio_max" value="{{ params['float_ratio_max'] }}"/></td>
-        </tr>
-        <tr>
-        <td>mean:</td>
-        <td><input data-parsley-type="number" name="mean_min" value="{{ params['mean_min'] }}"/></td>
-        <td><input data-parsley-type="number" name="mean_max" value="{{ params['mean_max'] }}"/></td>
-        </tr>
-        <tr>
-        <td>standard deviation:</td>
-        <td><input data-parsley-type="number" name="std_min" value="{{ params['std_min'] }}"/></td>
-        <td><input data-parsley-type="number" name="std_max" value="{{ params['std_max'] }}"/></td>
-        </tr>
-        <tr>
-        <td>range:</td>
-        <td><input data-parsley-type="number" name="range_min" value="{{ params['range_min'] }}"/></td>
-        <td><input data-parsley-type="number" name="range_max" value="{{ params['range_max'] }}"/></td>
-        </tr>
-        <tr>
-        <td>accuracy:</td>
-        <td><input data-parsley-type="number" name="accuracy_min" value="{{ params['accuracy_min'] }}"/></td>
-        <td><input data-parsley-type="number" name="accuracy_max" value="{{ params['accuracy_max'] }}"/></td>
-        </tr>
-        <tr>
-        <td>magnitude:</td>
-        <td><input data-parsley-type="number" name="mag_min" value="{{ params['mag_min'] }}"/></td>
-        <td><input data-parsley-type="number" name="mag_max" value="{{ params['mag_max'] }}"/></td>
-        </tr>
+            <td class="dummy">Filter:</td>
+            <td class="dummy"><input disabled/></td>
+            <td class="dummy"><input disabled/></td>
+            <td><button class="addFilter" type="button" ng-click="addFilter()">Add Filter</button></td>
+		</tr>
 		</table>
     </form>
   </div>
