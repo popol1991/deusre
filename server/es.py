@@ -12,7 +12,7 @@ COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accura
 class ES():
     """ A wrapper class for elasticsearch """
     def __init__(self, server):
-        self.es = Elasticsearch([{"host":"localhost"}])
+        self.es = Elasticsearch([{"host":server}])
 
     def existed(self, index):
         return self.es.indices.exists(index=index)
