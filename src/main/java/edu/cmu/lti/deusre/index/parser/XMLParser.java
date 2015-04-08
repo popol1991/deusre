@@ -127,15 +127,17 @@ public class XMLParser extends Parser {
                 rowList.add(row);
             }
         }
-        List<List<String>> columnList = getColumns(rowList);
-        for (int col = 0; col < columnList.size(); col++) {
-            List<String> column = columnList.get(col);
-            Hashtable<String, String> features = generator.column2Vector(column);
-            JSONObject colStat = new JSONObject();
-            for (String key : features.keySet()) {
-                colStat.put(key, Double.parseDouble(features.get(key)));
+        if (rowList.size() > 0) {
+            List<List<String>> columnList = getColumns(rowList);
+            for (int col = 0; col < columnList.size(); col++) {
+                List<String> column = columnList.get(col);
+                Hashtable<String, String> features = generator.column2Vector(column);
+                JSONObject colStat = new JSONObject();
+                for (String key : features.keySet()) {
+                    colStat.put(key, Double.parseDouble(features.get(key)));
+                }
+                columnStats.put("col_" + col, colStat);
             }
-            columnStats.put("col_" + col, colStat);
         }
         return columnStats;
     }
@@ -221,6 +223,8 @@ public class XMLParser extends Parser {
         }
         Node title = doc.getElementsByTagName("article-title").item(0);
         articleInfo.put("article-title", title.getTextContent());
+        Node link = doc.getElementsByTagName("link").item(0);
+        articleInfo.put("link", link.getTextContent());
         articleInfo.put("authors", listFromXml(doc, "author"));
         articleInfo.put("keywords", listFromXml(doc, "keyword"));
         return articleInfo;

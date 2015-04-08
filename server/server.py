@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_SIZE = 20
 FEDERATE_INDEX = "federate"
-ELSEVIER_INDEX = "deusre"
+#ELSEVIER_INDEX = "deusre"
+ELSEVIER_INDEX = "arxiv"
 FEDERATE_SIZE = 10
 DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed"]
 WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
@@ -134,10 +135,10 @@ def search_elsevier(params):
     page = 0
     query = params['q']
     if len(query) == 0:
-        text_response = es.match_all(page, size)
+        text_response = es.match_all(page, size, index=ELSEVIER_INDEX)
     else:
         logger.info("Search elasticsearch with query: {0}".format(query))
-        text_response = es.text_search(query, page, size)
+        text_response = es.text_search(query, page, size, index=ELSEVIER_INDEX)
     return text_response
     page += 1
     return res

@@ -28,6 +28,7 @@ public class IndexMain {
         WorkQueue wq = new FSWorkQueue(dir, parser);
         while (wq.hasNext()) {
             JSONObject[] docList = wq.next();
+            if (docList == null) continue;
             for (Map<String, String> doc : docList) {
                 index.addDoc(doc);
             }

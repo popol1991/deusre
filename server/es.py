@@ -43,7 +43,7 @@ class ES():
         }
         self.es.index(index=index, doc_type='doc', id=doc_id, body=body)
 
-    def text_search(self, q, page, size):
+    def text_search(self, q, page, size, index):
         query = {
             "query": {
                 "multi_match": {
@@ -61,10 +61,10 @@ class ES():
                 }
             }
         }
-        res = self.es.search(index="deusre", body=query)
+        res = self.es.search(index=index, body=query)
         return ESResponse(res)
 
-    def match_all(self, page, size):
+    def match_all(self, page, size, index):
         query = {
             "query": {
                 "match_all": {}
@@ -72,7 +72,7 @@ class ES():
             "from": page * size,
             "size": size
         }
-        res = self.es.search(index="deusre", body=query)
+        res = self.es.search(index=index, body=query)
         return ESResponse(res, match_all=True)
 
 class ESResponse():
@@ -96,6 +96,9 @@ class ESResponse():
         hits = [self.convert(hit) for hit in self.hits]
         filtered = self.filter_highlight(hits, params)
         reranked = [e[0] for e in sorted(filtered, key=itemgetter(1), reverse=True)]
+        #: Add id for tables for selector
+        for i in range(len(reranked)):
+            reranked[i]['id'] = i
         return reranked
 
     def filter_highlight(self, hits, params):
@@ -104,7 +107,6 @@ class ESResponse():
             if self.match_all or 'highlight' in hit:
                 columns = []
                 rows = []
-                match_column = False
                 if not self.match_all:
                     hl = hit['highlight']
                     columns = [int(key.split('_')[1]) for key in hl if key.startswith('headers')]
@@ -113,7 +115,6 @@ class ESResponse():
                     width = len(hit['data_rows'][0])
                     columns = range(width)
                 if len(rows) == 0:
-                    match_column = True
                     height = len(hit['data_rows'])
                     rows = range(height)
                 col_scores = []
@@ -130,6 +131,7 @@ class ESResponse():
                         for row in rows:
                             doclen += 1
                             data = hit['data_rows']
+                            if data is None or data[row] is None: continue
                             if row < len(data) and col < len(data[row]):
                                 cell_val = hit['data_rows'][row][col]
                                 if not self.is_text(cell_val) and self.satisfy(cell_val, params, feature):

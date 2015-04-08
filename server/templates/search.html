@@ -7,6 +7,12 @@
     <link rel='stylesheet' href='/static/css/index.css'>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/parsley.min.js"></script>
+
+    <script>
+        function toggle(id) {
+            $("tbody#"+id).toggle();
+        };
+    </script>
 </head>
 
 <!-- Title and search box -->
@@ -88,18 +94,18 @@
   <section class='results'>
     {% for hit in hits %}
     <article class='result'>
-        <h2>{{ hit.score }}</h2>
-      <h2>{{ hit.caption }}</h2>
-      <h3>From: {{ hit['article-title']}}</h3>
-      <p>{{hit.journal}}, {{hit.issn}}, {{hit.volume}}, {{hit.issue}}, {{hit.page}}, {{hit.date}}</p>
-      <p>
-          <b>Authors: </b>
-          <span>{{ ", ".join(hit.authors) }}</span>
-      </p>
-      <p>
-          <b>Keywords: </b>
-          <span>{{ ", ".join(hit.keywords) }}</span>
-      </p>
+      <!--<h2>{{ hit.id}}</h2>-->
+      <h2><a href="{{ hit.link }}">{{ hit.caption }}</a></h2>
+      <!--<h3>From: {{ hit['article-title']}}</h3>-->
+      <!--<p>{{hit.journal}}, {{hit.issn}}, {{hit.volume}}, {{hit.issue}}, {{hit.page}}, {{hit.date}}</p>-->
+      <!--<p>-->
+          <!--<b>Authors: </b>-->
+          <!--<span>{{ ", ".join(hit.authors) }}</span>-->
+      <!--</p>-->
+      <!--<p>-->
+          <!--<b>Keywords: </b>-->
+          <!--<span>{{ ", ".join(hit.keywords) }}</span>-->
+      <!--</p>-->
       <br>
       <table>
           <thead>
@@ -113,18 +119,23 @@
               </tr>
             {% endfor %}
           </thead>
-          <tbody>
-          {% for row in hit.data_rows %}
-          <tr>
-            {% for value in row %}
-                <td id="cell" class="highlight_{{ value.highlight }}">
-                {{ value.text }}
-                </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
+          <tbody id="{{ hit.id }}" style="display:none">
+          {% if 'data_rows' in hit %}
+              {% for row in hit.data_rows %}
+              <tr>
+                  {% if row %}
+                    {% for value in row %}
+                        <td id="cell" class="highlight_{{ value.highlight }}">
+                        {{ value.text }}
+                        </td>
+                    {% endfor %}
+                  {% endif %}
+              </tr>
+              {% endfor %}
+          {% endif %}
           </tbody>
       </table>
+      <a onclick="toggle({{hit.id}})">Show/Hide table.</a>
     </article>
     {% endfor %}
   </section>
