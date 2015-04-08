@@ -1,5 +1,6 @@
 import time
 import datetime
+import re
 from elasticsearch import Elasticsearch
 from operator import itemgetter
 
@@ -8,6 +9,8 @@ FIELDS = ["article-title", "caption", "citations", "data_*.row_header", "footnot
 CELL_FEATURE = ["magnitude", "mainValue", "precision", "pvalue"]
 COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accuracy", "magnitude"]
 
+OLD_DEFAULT_FIELD = ["caption", "header_row_*.header_*", "data_row_*.svalue_*", "footnote_*", "keyword_0", "article-title"]
+FIELD_PTN = [re.compile(p) for p in [r"caption", r"header_row_\d+\.header_\d+", r"data_row_\d+\.svalue_\d+", r"footnote_\d+", r"keyword_0", r"article-title"]]
 
 class ES():
     """ A wrapper class for elasticsearch """
@@ -74,6 +77,57 @@ class ES():
         }
         res = self.es.search(index=index, body=query)
         return ESResponse(res, match_all=True)
+
+    def mkbody(self, query, field, highlight=False):
+        # prepare body
+        qry = {
+            "multi_match": {
+                "query": query,
+                "fields": field,
+                "type": "best_fields"
+            }
+        }
+        body = {
+            "_source": True,
+            "query": qry,
+            "size": 100
+        }
+        if highlight:
+            fields = dict()
+            for f in field:
+                fields[f] = dict()
+            body['highlight'] = dict(fields=fields)
+        return body
+
+    def get_feature_vector(self, query, index, doc_type='table', field=OLD_DEFAULT_FIELD):
+        body = self.mkbody(query, field, highlight=True)
+
+        # search
+        res = self.es.search(index=index, doc_type=doc_type, body=body)
+        return self.get_vector(res)
+
+    def get_vector(self, res):
+        hits = res['hits']['hits']
+        nummatched = [0] * len(OLD_DEFAULT_FIELD)
+        total = 0
+        for hit in hits:
+            if 'highlight' in hit:
+                hilights = hit['highlight']
+                for f in hilights:
+                    print hilights[f]
+                    total += len(hilights[f])
+                    for i in range(len(OLD_DEFAULT_FIELD)):
+                        pattern = FIELD_PTN[i]
+                        if pattern.search(f) is not None:
+                            nummatched[i] += len(hilights[f])
+                            break
+        return [w for w in nummatched]
+
+    def search_neuroelectro(self, query, weight, index, doc_type='table'):
+        field = ["{0}^{1}".format(OLD_DEFAULT_FIELD[i], weight[i]) for i in range(len(weight))]
+        body = self.mkbody(query, field)
+        res = self.es.search(index=index, doc_type=doc_type, body=body)
+        return res
 
 class ESResponse():
     def __init__(self, res, match_all=False):

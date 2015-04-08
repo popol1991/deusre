@@ -13,6 +13,11 @@
         function toggle(id) {
             $("tbody#"+id).toggle();
         };
+        function addfilter() {
+            var res = $(".results-container");
+            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 40) + "px";
+            res.css("padding-top", newtop);
+        };
     </script>
 </head>
 
@@ -34,7 +39,7 @@
             <td class="dummy">Filter:</td>
             <td class="dummy"><input disabled/></td>
             <td class="dummy"><input disabled/></td>
-            <td><button class="addFilter" type="button" ng-click="addFilter()">Add Filter</button></td>
+            <td><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>
 		</tr>
 		</table>
     </form>
@@ -90,7 +95,7 @@
           {% endif %}
           </tbody>
       </table>
-      <a onclick="toggle({{hit.id}})">Show/Hide table.</a>
+      <a class="toggle" onclick="toggle({{hit.id}})">Show/Hide table.</a>
     </article>
     {% endfor %}
   </section>

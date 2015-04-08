@@ -1,12 +1,14 @@
 import base64
 import os
-from flask import Flask
-from flask import redirect, request, render_template, make_response
 import requests
-from werkzeug import SharedDataMiddleware
-from es import ES
 import wrapper
 import json
+from es import ES
+from flask import Flask
+from flask import redirect, request, render_template, make_response
+from werkzeug import SharedDataMiddleware
+from logistic import Logistic
+from render import render_neuroelectro
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -20,10 +22,18 @@ FEDERATE_SIZE = 10
 DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed"]
 WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
 
+WEIGHT = [0.22010851, 0.11594479, -0.00707995, -0.09021589, -0.04557491,  0.29571261]
+BEST_WEIGHT = [
+    [0, 0, 0, 0, 9, 3],
+    [0, 2, 5, 5, 0, 0]
+]
+
 app = Flask(__name__)
 app.wsgi_app = SharedDataMiddleware(app.wsgi_app,
     {'/static': '/deusre/search/static'})
+
 es = None
+logistic = Logistic(WEIGHT)
 
 @app.route("/deusre/api/<path:path>")
 def route(path):
@@ -32,6 +42,26 @@ def route(path):
     data = request.get_data()
     res = make_response(requests.get(target, data=data, params=request.args).content)
     return res
+
+@app.route("/deusre/neuroelectro/")
+def classify_search():
+    #: build structured query to elasticsearch
+    params = request.args
+    if len(params) == 0:
+        return render_template('neuro.html', hits=[], query="", qtype="")
+    query = params['q']
+    vector = es.get_feature_vector(query, 'table')
+    query_type = logistic.classify(vector)
+    qtype = "Neuron" if query_type == 0 else "Property"
+    weight = BEST_WEIGHT[query_type]
+    res = es.search_neuroelectro(query, weight, 'table')
+    hits = [hit['_source'] for hit in res['hits']['hits']]
+    hits = [render_neuroelectro(hit) for hit in hits]
+    for i in range(len(hits)):
+        hits[i]['id'] = i
+    template = render_template('neuro.html', hits=hits, query=query, qtype=qtype)
+    resp = make_response(template)
+    return resp
 
 @app.route("/deusre/federate/item/<path:path>")
 def item(path):
