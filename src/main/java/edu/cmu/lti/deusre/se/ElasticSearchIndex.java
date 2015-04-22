@@ -78,6 +78,7 @@ public class ElasticSearchIndex extends Index {
                 .admin().indices().prepareCreate(indexName);
         createIndexRequestBuilder.setSettings(this.setting);
         //TODO: set mapping here?
+        createIndexRequestBuilder.addMapping(settings.get("doc_type"), settings.get("mappings"));
         CreateIndexResponse createIndexResponse = createIndexRequestBuilder.execute().actionGet();
         return createIndexResponse.isAcknowledged();
     }

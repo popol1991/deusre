@@ -1,0 +1,14 @@
+{
+  "table": {
+    "properties": {
+      "domains": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "subdomains": {
+        "type": "string",
+        "index": "not_analyzed"
+      }
+    }
+  }
+}

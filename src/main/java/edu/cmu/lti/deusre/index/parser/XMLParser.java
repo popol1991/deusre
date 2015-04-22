@@ -16,10 +16,7 @@ import javax.xml.xpath.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Kyle on 2/4/15.
@@ -223,10 +220,34 @@ public class XMLParser extends Parser {
         }
         Node title = doc.getElementsByTagName("article-title").item(0);
         articleInfo.put("article-title", title.getTextContent());
-        Node link = doc.getElementsByTagName("link").item(0);
-        articleInfo.put("link", link.getTextContent());
         articleInfo.put("authors", listFromXml(doc, "author"));
         articleInfo.put("keywords", listFromXml(doc, "keyword"));
+
+        // arXiv specific info
+        Set<String> domainSet = new HashSet<String>();
+        JSONArray subdomainAry = new JSONArray();
+        Node link = doc.getElementsByTagName("link").item(0);
+        articleInfo.put("link", link.getTextContent());
+        NodeList domainList = doc.getElementsByTagName("domain");
+        for (int i = 0; i < domainList.getLength(); i++) {
+            Node domain = domainList.item(i);
+            Element domainElm = (Element) domain;
+            NodeList subList = domainElm.getElementsByTagName("subdomain");
+            if (subList.getLength() != 0) {
+                Node subdomain = subList.item(0);
+                domain.removeChild(subdomain);
+                subdomainAry.add(String.format("%s - %s",
+                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
+            }
+            domainSet.add(domain.getTextContent().trim());
+        }
+        JSONArray domainAry = new JSONArray();
+        for (String domain : domainSet) {
+            domainAry.add(domain);
+        }
+        articleInfo.put("domains", domainAry);
+        articleInfo.put("subdomains", subdomainAry);
+
         return articleInfo;
     }
 

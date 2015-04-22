@@ -9,9 +9,12 @@ import edu.cmu.lti.deusre.se.Index;
 import org.json.simple.JSONObject;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Created by Kyle on 2/4/15.
@@ -54,9 +57,16 @@ public class IndexMain {
                 config.getProperty("port"),
                 config.getProperty("cluster"),
                 config.getProperty("index"));
-        String mappings = "";
         HashMap<String, String> settingMap = new HashMap<>();
         settingMap.put("settings", config.getProperty("settings"));
+        settingMap.put("doc_type", config.getProperty("doc_type"));
+        String mappings = null;
+        try {
+            mappings = Files.lines(Paths.get(config.getProperty("mappings")))
+                    .parallel().collect(Collectors.joining());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         settingMap.put("mappings", mappings);
         index.create(settingMap, true);
         return index;
