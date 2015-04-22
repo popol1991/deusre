@@ -26,12 +26,14 @@
 
 <!-- Listing of search results -->
 <main class="federate-results-container">
-<h2 class="classification">This is a {{ qtype }} query.</h2>
+  {% if hits != [] %}
+  <h2 class="classification">This is a {{ qtype }} query.</h2>
+  {% endif %}
   <section class='results'>
     {% for hit in hits %}
     <article class='result'>
       <!--<h2>{{ hit.id}}</h2>-->
-      <h2><a href="{{ hit.link }}">{{ hit.caption }}</a></h2>
+      <h2>{{ hit.caption }}</h2>
       <h3>From: {{ hit['article-title']}}</h3>
       <br>
       <table>
