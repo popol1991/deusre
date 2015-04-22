@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang='en' ng-app="filter">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" ng-app="filter">
 <head>
     <meta charset='utf-8'>
-    <title>Scientific Data Search</title>
+    <title>arXiv Table Search</title>
     <link rel='stylesheet' href='/static/css/reset.css'>
-    <link rel='stylesheet' href='/static/css/index.css'>
+    <link rel='stylesheet' href='/static/css/arxiv.css'>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/parsley.min.js"></script>
     <script src="/static/js/angular.min.js"></script>
@@ -15,35 +16,41 @@
         };
         function addfilter() {
             var res = $(".results-container");
-            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 40) + "px";
+            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 35) + "px";
             res.css("padding-top", newtop);
+            var res = $(".addfilter");
+            var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
+            res.css("top", newtop);
+            var res = $(".addbtn");
+            var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
+            res.css("top", newtop);
         };
     </script>
 </head>
 
 <!-- Title and search box -->
-<header class="jumbotron">
-  <h1 class="title"><a>EAGER</a></h1>
-  <div class="search-box-container" data-ng-controller='filterCtrl'>
+<header class="jumbotron" data-ng-controller='filterCtrl'>
+  <h1 class="title"><a>Table arXiv</a></h1>
+  <div class="search-box-container">
       <form data-parsley-validate action="./" method="get">
         <input type="submit" class="search-button" value="Search">
+        <select name="domain" class="search-domain">
+            <option>All Domain</option>
+        </select>
         <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
         <table class="filter">
-		<tr ng-repeat="filter in filterlist">
+		<tr class="filter_item" ng-repeat="filter in filterlist">
             <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
             </select></td>
             <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min"/></td>
             <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max"/></td>
 		</tr>
-        <tr>
-            <td class="dummy">Filter:</td>
-            <td class="dummy"><input disabled/></td>
-            <td class="dummy"><input disabled/></td>
-            <td><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>
-		</tr>
 		</table>
     </form>
   </div>
+  <a class="about" href="./about.html">About</a>
+    <div id="trapezoid" class="addbtn"></div>
+    <button class="addfilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button>
 </header>
 
 <!-- Listing of search results -->
@@ -55,8 +62,9 @@
     {% for hit in hits %}
     <article class='result'>
       <!--<h2>{{ hit.id}}</h2>-->
-      <h2>{{ hit.caption }}</h2>
+      <h2><a href="{{ hit.link }}">{{ hit.caption }}</a></h2>
       <h3>From: {{ hit['article-title']}}</h3>
+      <h3>Subject: {{ hit['subject']}}</h3>
       <!--<p>{{hit.journal}}, {{hit.issn}}, {{hit.volume}}, {{hit.issue}}, {{hit.page}}, {{hit.date}}</p>-->
       <!--<p>-->
           <!--<b>Authors: </b>-->
@@ -67,12 +75,12 @@
           <!--<span>{{ ", ".join(hit.keywords) }}</span>-->
       <!--</p>-->
       <br>
-      <table>
+      <table class="result_table">
           <thead>
             {% for row in hit.header_rows %}
               <tr>
                 {% for header in row %}
-                  <th>
+                  <th class="result_table">
                     {{ header.value }}
                   </th>
                 {% endfor %}
@@ -85,7 +93,7 @@
               <tr>
                   {% if row %}
                     {% for value in row %}
-                        <td id="cell" class="highlight_{{ value.highlight }}">
+                        <td id="cell" class="result_table highlight_{{ value.highlight }}">
                         {{ value.text }}
                         </td>
                     {% endfor %}
@@ -101,6 +109,5 @@
   </section>
 </main>
 
-<!-- Load resources -->
 </body>
 </html>

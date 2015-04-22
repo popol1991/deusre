@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_SIZE = 20
 FEDERATE_INDEX = "federate"
-#ELSEVIER_INDEX = "deusre"
-ELSEVIER_INDEX = "arxiv"
+ELSEVIER_INDEX = "deusre"
+ARXIV_INDEX = "arxiv"
 FEDERATE_SIZE = 10
 DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed"]
 WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
@@ -50,11 +50,11 @@ def classify_search():
     if len(params) == 0:
         return render_template('neuro.html', hits=[], query="", qtype="")
     query = params['q']
-    vector = es.get_feature_vector(query, 'table')
+    vector = es.get_feature_vector(query, 'neuroelectro')
     query_type = logistic.classify(vector)
     qtype = "Neuron" if query_type == 0 else "Property"
     weight = BEST_WEIGHT[query_type]
-    res = es.search_neuroelectro(query, weight, 'table')
+    res = es.search_neuroelectro(query, weight, 'neuroelectro')
     hits = [hit['_source'] for hit in res['hits']['hits']]
     hits = [render_neuroelectro(hit) for hit in hits]
     for i in range(len(hits)):
@@ -113,7 +113,7 @@ def federate():
             doc_id += 1
     es.refresh(index=FEDERATE_INDEX)
     res = es.search(index=FEDERATE_INDEX, body={'query':{'match':{'text':query}}, 'size':1000}, docid=None)
-    elsevier_res = search_elsevier(dict(q=query))
+    elsevier_res = search_local(dict(q=query), ELSEVIER_INDEX)
     elsevier_hits = elsevier_res.hits_for_federate()
     hits = res['hits']['hits']
     for hit in hits:
@@ -126,13 +126,25 @@ def federate():
     resp.set_cookie('userid', userid)
     return resp
 
+@app.route("/deusre/arxiv/")
+def arxiv():
+    #: build structured query to elasticsearch
+    params = request.args
+    if len(params) == 0:
+        return render_template('arxiv.html', hits=[], query="", params={})
+    res = search_local(params, ARXIV_INDEX)
+    logger.info("Reranking...")
+    res = res.rerank(params)
+    logger.info("Rendering...")
+    return render_template('arxiv.html', hits=res, len=len(res), params=params)
+
 @app.route("/deusre/search/")
 def search():
     #: build structured query to elasticsearch
     params = request.args
     if len(params) == 0:
         return render_template('search.html', hits=[], query="", params={})
-    res = search_elsevier(params)
+    res = search_local(params, ELSEVIER_INDEX)
     logger.info("Reranking...")
     res = res.rerank(params)
     logger.info("Rendering...")
@@ -157,7 +169,7 @@ def merge(hits1, hits2):
         hits += hits2[j:]
     return hits
 
-def search_elsevier(params):
+def search_local(params, index):
     res = []
     size = DEFAULT_SIZE
     if 'size' in params:
@@ -165,10 +177,10 @@ def search_elsevier(params):
     page = 0
     query = params['q']
     if len(query) == 0:
-        text_response = es.match_all(page, size, index=ELSEVIER_INDEX)
+        text_response = es.match_all(page, size, index=index)
     else:
         logger.info("Search elasticsearch with query: {0}".format(query))
-        text_response = es.text_search(query, page, size, index=ELSEVIER_INDEX)
+        text_response = es.text_search(query, page, size, index=index)
     return text_response
     page += 1
     return res

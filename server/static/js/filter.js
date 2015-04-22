@@ -61,5 +61,4 @@ app.controller('filterCtrl', function($scope) {
             selected: $scope.filters[0]
         });
     }
-
 });
