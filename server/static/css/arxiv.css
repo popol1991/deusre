@@ -15,9 +15,15 @@ Indian Red: #ed4877
 Crimson: #d62256 
 Whitesmoke: #ecf0f1 */
 
+html {
+    height: 100%;
+}
+
 body {
   font-family: "Arial";
   background-color: #ecf0f1;
+  white-space: nowrap;
+  height: 100%;
 }
 
 /* Header */
@@ -41,7 +47,7 @@ form {
 }
 .search-box-container {
  display: inline-block;
-  width: 810px;
+  width: 670px;
   height: 50px;
   margin-left: auto;
   margin-right: auto;
@@ -72,25 +78,6 @@ form {
     border-radius: 5px;
     margin: 5px 5px 0px 5px;
 }
-.search-domain {
-    float: right;
-    width: 120px;
-    height: 52px;
-    cursor: pointer;
-    font-size: 16px;
-    background: none;
-    /*letter-spacing: 1px;*/
-    font-weight: 300;
-    border: 4px solid #fff;
-    border-radius: 5px;
-    color: #fff;
-    margin: 0px 5px 0px 5px;
-}
-.search-domain:hover,
-.search-domain:active {
-    color: #ed4877;
-    background: #fff;
-}
 .search-button {
     float: right;
     width: 120px;
@@ -112,6 +99,7 @@ form {
     background: #fff;
 }
 .filter {
+    z-index: 99999;
     width: 540px;
 }
 .filter_item {
@@ -135,16 +123,12 @@ form {
 
 /* Results */
 .results-container {
-  height: 100%;
-  width: 100%;
-  padding-top: 60px;
-  padding-bottom: 30px;
-}
-.federate-results-container {
-  height: 100%;
-  width: 100%;
-  padding-top:30px;
-  padding-bottom: 30px;
+    float: left;
+    height: 100%;
+    width: 800px;
+    padding-top: 60px;
+    padding-bottom: 30px;
+    white-space: normal;
 }
 .no-results {
   text-align: center;
@@ -195,8 +179,9 @@ td, th {
 }
 
 a.about {
-    float: right;
+    display: inline-block;
     margin-top: 30px;
+    margin-left: 50px;
     margin-right:10px;
     font-size:18px;
 }
@@ -341,4 +326,41 @@ td.result_table {
 th.result_table {
     border-left: 1px solid black;
     border-right: 1px solid black;
+}
+
+.side-bar {
+    display: inline-block;
+    width: 300px;
+    height: 480px;
+    margin-left: 50px;
+    margin-top: 60px;
+    margin-right: auto;
+    background-color: #fff;
+    border-radius: 5px;
+    vertical-align: top;
+}
+
+.search-domain {
+    display: inline;
+    width: 280px;
+    height: 52px;
+    cursor: pointer;
+    font-size: 16px;
+    background: none;
+    /*letter-spacing: 1px;*/
+    font-weight: 300;
+    border: 4px solid #b31b1b;
+    border-radius: 5px;
+    color: #b31b1b;
+    margin: 10px 10px 10px 10px;
+}
+.search-domain:hover,
+.search-domain:active {
+    color: #ed4877;
+    background: #fff;
+}
+
+.subdomain {
+    display: inline;
+    margin: 0px 10px 10px 10px;
 }

@@ -5,11 +5,22 @@
     <meta charset='utf-8'>
     <title>arXiv Table Search</title>
     <link rel='stylesheet' href='/static/css/reset.css'>
-    <link rel='stylesheet' href='/static/css/arxiv.css'>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/parsley.min.js"></script>
     <script src="/static/js/angular.min.js"></script>
-    <script src="/static/js/filter.js"></script>
+    <script src="/static/js/arxiv.js"></script>
+
+    <!-- For side-bar menu -->
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-sanitize.js"></script>
+    <!-- ui-select files -->
+    <script src="/static/js/select.js"></script>
+
+    <!-- Select2 theme -->
+    <link rel='stylesheet' href='/static/css/arxiv.css'>
+    <link rel="stylesheet" href="/static/css/select2.css">
+
+    <link rel="stylesheet" href="/static/js/select.css">
+
     <script>
         function toggle(id) {
             $("tbody#"+id).toggle();
@@ -32,18 +43,15 @@
 <header class="jumbotron" data-ng-controller='filterCtrl'>
   <h1 class="title"><a>Table arXiv</a></h1>
   <div class="search-box-container">
-      <form data-parsley-validate action="./" method="get">
+      <form id="header" data-parsley-validate action="./">
         <input type="submit" class="search-button" value="Search">
-        <select name="domain" class="search-domain">
-            <option>All Domain</option>
-        </select>
         <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
         <table class="filter">
 		<tr class="filter_item" ng-repeat="filter in filterlist">
             <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
             </select></td>
-            <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min"/></td>
-            <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max"/></td>
+            <td><input type="text" data-parsley-type="number" name="{[ filter.selected.name ]}_min"/></td>
+            <td><input type="text" data-parsley-type="number" name="{[ filter.selected.name]}_max"/></td>
 		</tr>
 		</table>
     </form>
@@ -52,6 +60,7 @@
     <div id="trapezoid" class="addbtn"></div>
     <button class="addfilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button>
 </header>
+
 
 <!-- Listing of search results -->
 <main class="results-container">
@@ -108,6 +117,46 @@
     {% endfor %}
   </section>
 </main>
+
+<div class="side-bar" data-ng-controller='sideBar'>
+    <select id="domain" name="domain" class="search-domain" ng-change="update_subdomain()" ng-model=selected_domain required ng-options="item as item.label for item in domainlist track by item.value">
+    </select>
+    <br>
+    <div class="subdomain">
+    <ui-select multiple ng-model="multipleDemo.colors" theme="select2" ng-disabled="disabled">
+    <ui-select-match placeholder="Select subdomains...">{[$item]}</ui-select-match>
+    <ui-select-choices repeat="color in subdomains | filter:$select.search">
+      {[color]}
+    </ui-select-choices>
+  </ui-select>
+  </div>
+</div>
+
+<script>
+    $("#header").submit(function(event) {
+        event.preventDefault();
+        var headerData = $("#header").serializeArray();
+        var domain = $("#domain").val();
+        var subdomain = new Array();
+        $("#subdomain span").each(function(index) {
+            subdomain.push($(this).text());
+        });
+        var body = {};
+        $.each(headerData, function() {
+            body[this.name] = this.value || '';
+        });
+        body['domain'] = domain;
+        if (subdomain.length != 0) {
+            for (var i = 0; i < subdomain.length; i++) {
+                body['subdomain' + i] = subdomain[i];
+            }
+        };
+        $.post(".", body, function(data) {
+            var main = $('main', '<div>'+data+'</div>');
+            $("main").replaceWith(main);
+        });
+    });
+</script>
 
 </body>
 </html>

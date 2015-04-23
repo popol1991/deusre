@@ -150,6 +150,12 @@ form {
   color: #ed4877;
   margin-bottom: 5px;
 }
+
+h2 {
+    font-size: 20px;
+    margin-left: 30px;
+    margin-bottom: 10px;
+}
 /* Result */
 table {
     width: 100%;

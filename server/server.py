@@ -4,6 +4,7 @@ import requests
 import wrapper
 import json
 from es import ES
+from es import ESResponse
 from flask import Flask
 from flask import redirect, request, render_template, make_response
 from werkzeug import SharedDataMiddleware
@@ -18,14 +19,22 @@ DEFAULT_SIZE = 20
 FEDERATE_INDEX = "federate"
 ELSEVIER_INDEX = "deusre"
 ARXIV_INDEX = "arxiv"
+NEURO_INDEX = "neuroelectro"
 FEDERATE_SIZE = 10
 DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed"]
 WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
 
-WEIGHT = [0.22010851, 0.11594479, -0.00707995, -0.09021589, -0.04557491,  0.29571261]
+#: old best weight for different type of queries
+#WEIGHT = [0.22010851, 0.11594479, -0.00707995, -0.09021589, -0.04557491,  0.29571261]
+#BEST_WEIGHT = [
+    #[0, 0, 0, 0, 9, 3],
+    #[0, 2, 5, 5, 0, 0]
+#]
+
+WEIGHT = [0.00690382, -0.11629435, -1.26628013, 0.05997085, 0.0576386, 0.27931962]
 BEST_WEIGHT = [
-    [0, 0, 0, 0, 9, 3],
-    [0, 2, 5, 5, 0, 0]
+    [5, 1, 1, 1, 1, 1], # neuron
+    [1, 1, 2, 5, 5, 1]  # property
 ]
 
 app = Flask(__name__)
@@ -50,16 +59,17 @@ def classify_search():
     if len(params) == 0:
         return render_template('neuro.html', hits=[], query="", qtype="")
     query = params['q']
-    vector = es.get_feature_vector(query, 'neuroelectro')
+    vector = es.get_feature_vector(query, NEURO_INDEX)
     query_type = logistic.classify(vector)
     qtype = "Neuron" if query_type == 0 else "Property"
     weight = BEST_WEIGHT[query_type]
-    res = es.search_neuroelectro(query, weight, 'neuroelectro')
-    hits = [hit['_source'] for hit in res['hits']['hits']]
-    hits = [render_neuroelectro(hit) for hit in hits]
+    res = es.search_neuroelectro(query, weight, NEURO_INDEX)
+    res = ESResponse(res)
+    #return render_template('search.html', hits=res, len=len(res), params=params)
+    hits = res.rerank({})
     for i in range(len(hits)):
         hits[i]['id'] = i
-    template = render_template('neuro.html', hits=hits, query=query, qtype=qtype)
+    template = render_template('neuro.html', hits=hits, len=len(hits), params=params, qtype=qtype)
     resp = make_response(template)
     return resp
 
@@ -126,16 +136,40 @@ def federate():
     resp.set_cookie('userid', userid)
     return resp
 
-@app.route("/deusre/arxiv/")
+@app.route("/deusre/arxiv/subjects.json")
+def subjects():
+    with open("./static/data/subjects.json") as fin:
+        subject = "".join(fin.readlines())
+    return subject
+
+@app.route("/deusre/arxiv/", methods=['GET', 'POST'])
 def arxiv():
     #: build structured query to elasticsearch
-    params = request.args
+    params = request.form
     if len(params) == 0:
         return render_template('arxiv.html', hits=[], query="", params={})
-    res = search_local(params, ARXIV_INDEX)
+    #res = search_local(params, ARXIV_INDEX)
+    query = es.mk_text_body(params['q'], 0, DEFAULT_SIZE, ARXIV_INDEX)
+    domainlist = [params[key] for key in params if key.startswith('subdomain')]
+    if len(domainlist) == 0:
+        domainlist = params['domain']
+    filter_query = es.mk_filter(domainlist)
+    filtered = dict(query=query['query'], filter=filter_query)
+    body = {
+        "query" : {
+            "filtered" : filtered
+        }
+    }
+    res = es.search(ARXIV_INDEX, body=body)
+    res = ESResponse(res)
     logger.info("Reranking...")
     res = res.rerank(params)
     logger.info("Rendering...")
+    for hit in res:
+        if len(hit['subdomains']) != 0:
+            hit['subject'] = ", ".join(hit['subdomains'])
+        else:
+            hit['subject'] = ", ".join(hit['domains'])
     return render_template('arxiv.html', hits=res, len=len(res), params=params)
 
 @app.route("/deusre/search/")
