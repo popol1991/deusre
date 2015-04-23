@@ -57,7 +57,7 @@ def classify_search():
     #: build structured query to elasticsearch
     params = request.args
     if len(params) == 0:
-        return render_template('neuro.html', hits=[], query="", qtype="")
+        return render_template('neuro.html', hits=[], len=0, params={}, qtype="")
     query = params['q']
     vector = es.get_feature_vector(query, NEURO_INDEX)
     query_type = logistic.classify(vector)
@@ -152,7 +152,7 @@ def arxiv():
     query = es.mk_text_body(params['q'], 0, DEFAULT_SIZE, ARXIV_INDEX)
     domainlist = [params[key] for key in params if key.startswith('subdomain')]
     if len(domainlist) == 0:
-        domainlist = params['domain']
+        domainlist = [params['domain']]
     filter_query = es.mk_filter(domainlist)
     filtered = dict(query=query['query'], filter=filter_query)
     body = {
@@ -160,6 +160,8 @@ def arxiv():
             "filtered" : filtered
         }
     }
+    if domainlist[0] == 'all':
+        body = query
     res = es.search(ARXIV_INDEX, body=body)
     res = ESResponse(res)
     logger.info("Reranking...")
