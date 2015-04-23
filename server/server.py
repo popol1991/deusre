@@ -149,19 +149,26 @@ def arxiv():
     if len(params) == 0:
         return render_template('arxiv.html', hits=[], query="", params={})
     #res = search_local(params, ARXIV_INDEX)
-    query = es.mk_text_body(params['q'], 0, DEFAULT_SIZE, ARXIV_INDEX)
     domainlist = [params[key] for key in params if key.startswith('subdomain')]
     if len(domainlist) == 0:
         domainlist = [params['domain']]
-    filter_query = es.mk_filter(domainlist)
-    filtered = dict(query=query['query'], filter=filter_query)
-    body = {
-        "query" : {
-            "filtered" : filtered
-        }
-    }
     if domainlist[0] == 'all':
-        body = query
+        body = es.mk_text_body(params['q'], 0, DEFAULT_SIZE, ARXIV_INDEX, highlight=True)
+    else:
+        filter_query = es.mk_filter(domainlist)
+        query = es.mk_text_body(params['q'], 0, DEFAULT_SIZE, ARXIV_INDEX, highlight=False)
+        filtered = dict(query=query['query'], filter=filter_query)
+        body = {
+            "query" : {
+                "filtered" : filtered
+            },
+            "highlight" : {
+                "fields": {
+                    "headers.header_*": {},
+                    "data.data_*.row_header": {}
+                }
+            }
+        }
     res = es.search(ARXIV_INDEX, body=body)
     res = ESResponse(res)
     logger.info("Reranking...")

@@ -54,7 +54,7 @@ class ES():
         res = self.es.search(index=index, body=query)
         return ESResponse(res)
 
-    def mk_text_body(self, q, page, size, index):
+    def mk_text_body(self, q, page, size, index, highlight=True):
         query = {
             "query": {
                 "multi_match": {
@@ -65,13 +65,14 @@ class ES():
             },
             "from": page * size,
             "size": size,
-            "highlight": {
+        }
+        if highlight:
+            query["highlight"] = {
                 "fields": {
                     "headers.header_*": {},
                     "data.data_*.row_header": {}
                 }
             }
-        }
         return query
 
     def mk_filter(self, terms):
