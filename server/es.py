@@ -18,7 +18,7 @@ FIELD_PTN = [re.compile(p) for p in [r"article-title", r"caption", r"data.data_\
 class ES():
     """ A wrapper class for elasticsearch """
     def __init__(self, server):
-        self.es = Elasticsearch([{"host":server}])
+        self.es = Elasticsearch([{"host":server}], timeout=100)
 
     def existed(self, index):
         return self.es.indices.exists(index=index)
@@ -123,7 +123,7 @@ class ES():
         body = self.mkbody(query, field, highlight=True)
 
         # search
-        res = self.es.search(index=index, doc_type=doc_type, body=body)
+        res = self.es.search(index=index, doc_type=doc_type, body=body, timeout=50)
         return self.get_vector(res)
 
     def get_vector(self, res):
@@ -145,6 +145,12 @@ class ES():
     def search_neuroelectro(self, query, weight, index, doc_type='table'):
         field = ["{0}^{1}".format(NEURO_FIELDS[i], weight[i]) for i in range(len(weight))]
         body = self.mkbody(query, field)
+        body['highlight'] = {
+            'fields': {
+                'headers.header_*': {},
+                'data.data_*.row_header': {}
+            }
+        }
         res = self.es.search(index=index, doc_type=doc_type, body=body)
         return res
 

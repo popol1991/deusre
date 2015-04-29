@@ -31,7 +31,7 @@ WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
     #[0, 2, 5, 5, 0, 0]
 #]
 
-WEIGHT = [0.00690382, -0.11629435, -1.26628013, 0.05997085, 0.0576386, 0.27931962]
+WEIGHT = [0.22186689, 0.11555565, 0.01580477, -0.13478732, -0.087531, -0.02332883]
 BEST_WEIGHT = [
     [5, 1, 1, 1, 1, 1], # neuron
     [1, 1, 2, 5, 5, 1]  # property
@@ -66,7 +66,7 @@ def classify_search():
     res = es.search_neuroelectro(query, weight, NEURO_INDEX)
     res = ESResponse(res)
     #return render_template('search.html', hits=res, len=len(res), params=params)
-    hits = res.rerank({})
+    hits = res.rerank(params)
     for i in range(len(hits)):
         hits[i]['id'] = i
     template = render_template('neuro.html', hits=hits, len=len(hits), params=params, qtype=qtype)
