@@ -25,16 +25,22 @@
         function toggle(id) {
             $("tbody#"+id).toggle();
         };
-        function addfilter() {
-            var res = $(".results-container");
-            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 35) + "px";
-            res.css("padding-top", newtop);
+        function moveFilterBtn() {
             var res = $(".addfilter");
             var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
             res.css("top", newtop);
             var res = $(".addbtn");
             var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
             res.css("top", newtop);
+        };
+        function moveResult() {
+            var res = $(".results-container");
+            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 35) + "px";
+            res.css("padding-top", newtop);
+        };
+        function addfilter() {
+            moveResult();
+            moveFilterBtn();
         };
     </script>
 </head>
@@ -56,7 +62,7 @@
 		</table>
     </form>
   </div>
-  <a class="about" href="http://boston.lti.cs.cmu.edu/eager/deusre/arxiv/about.html">About</a>
+  <a class="about" href="http://boston.lti.cs.cmu.edu/eager/deusre/about/arxiv.html">About</a>
     <div id="trapezoid" class="addbtn"></div>
     <button class="addfilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button>
 </header>
@@ -154,6 +160,11 @@
         $.post(".", body, function(data) {
             var main = $('main', '<div>'+data+'</div>');
             $("main").replaceWith(main);
+            var filterList = $('.filter_item');
+            var filterNum = filterList.length;
+            for (var i=0; i < filterNum; i++) {
+                moveResult();
+            }
         });
     });
 </script>
