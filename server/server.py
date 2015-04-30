@@ -43,6 +43,14 @@ app.wsgi_app = SharedDataMiddleware(app.wsgi_app,
 
 es = None
 logistic = Logistic(WEIGHT)
+with open('config.txt') as fin:
+    server = fin.readline().strip()
+es = ES(server)
+
+@app.route('/')
+def index():
+    #: for test
+    return "Hello World!"
 
 @app.route("/deusre/api/<path:path>")
 def route(path):
@@ -237,9 +245,11 @@ def initindex():
     else:
         logger.info('Index has already existed.')
 
+initindex()
+
 if __name__ == "__main__":
-    with open('config.txt') as fin:
-        server = fin.readline().strip()
-    es = ES(server)
-    initindex()
+    #with open('config.txt') as fin:
+        #server = fin.readline().strip()
+    #es = ES(server)
+    #initindex()
     app.run(host="0.0.0.0", port=8080, debug=True)
