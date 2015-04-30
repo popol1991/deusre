@@ -218,6 +218,13 @@ public class XMLParser extends Parser {
                 articleInfo.put(nodeName, tag.getTextContent());
             }
         }
+        NodeList sourceList = doc.getElementsByTagName("source");
+        if (sourceList.getLength() > 0) {
+            Node source = sourceList.item(0);
+            articleInfo.put("source", source.getTextContent());
+        } else {
+            articleInfo.put("source", "default");
+        }
         Node title = doc.getElementsByTagName("article-title").item(0);
         articleInfo.put("article-title", title.getTextContent());
         articleInfo.put("authors", listFromXml(doc, "author"));
