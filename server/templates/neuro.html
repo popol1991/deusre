@@ -26,6 +26,7 @@
   <h1 class="title"><a>EAGER</a></h1>
   <div class="search-box-container" data-ng-controller='filterCtrl'>
       <form data-parsley-validate action="./" method="get">
+          <a class="about right" href="http://boston.lti.cs.cmu.edu/eager/deusre/neurosci/">ABOUT</a>
         <input type="submit" class="search-button" value="Search">
         <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
         <table class="filter">
@@ -48,8 +49,10 @@
 
 <!-- Listing of search results -->
 <main class="results-container">
+    {% if params and len != 0 %}
     <h2 class="qtype">This is a {{ qtype }} query.</h2>
-    {% if len == 0 %}
+    {% endif  %}
+    {% if params and len == 0 and q in params and len(params[q]) != 0 %}
     <p>No results found.</p>
     {% endif  %}
   <section class='results'>

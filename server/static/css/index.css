@@ -276,3 +276,11 @@ h2.classification {
     margin-bottom: 30px;
     font-size: 24px;
 }
+.about {
+    margin-top: 15px;
+    margin-left: 10px;
+    font-size: 30px;
+}
+.right {
+    float: right;
+}
