@@ -141,9 +141,10 @@ form {
 
 /* Result */
 .result {
-  margin-bottom: 10px;
-  padding: 10px;
+  /*margin-bottom: 10px;*/
+  padding: 10px 10px 10px 10px;
   border-bottom: 10px solid #ecf0f1;
+  border-top: 10px solid #ecf0f1;
 }
 .result h2 {
   font-size: 18px;
@@ -206,6 +207,10 @@ a.toggle {
     height: 100%;
     opacity: 0.8;
     z-index: 10;
+}
+
+.highlight {
+    background: #99CCFF;
 }
 
 .highlight_1 {

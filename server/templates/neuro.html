@@ -54,8 +54,13 @@
     {% endif  %}
   <section class='results'>
     {% for hit in hits %}
+    {% if hit.source == 'neuroelectro' %}
+    <article class='result highlight'>
+    {% else %}
     <article class='result'>
+    {% endif %}
       <!--<h2>{{ hit.id}}</h2>-->
+      <h2>{{ hit.source }}</h2>
       <h2>{{ hit.caption }}</h2>
       <h3>From: {{ hit['article-title']}}</h3>
       <!--<p>{{hit.journal}}, {{hit.issn}}, {{hit.volume}}, {{hit.issue}}, {{hit.page}}, {{hit.date}}</p>-->
