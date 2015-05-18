@@ -96,8 +96,8 @@ public class ElasticSearchIndex extends Index {
             this.prepareBulk();
         }
 
-        //this.addBulkItem(doc.get("type"), doc.get("id"), doc.get("source"));
-        this.addBulkItem(doc.get("type"), doc.get("source")); // use default id to increase throughput
+        this.addBulkItem(doc.get("type"), doc.get("id"), doc.get("source"));
+        // this.addBulkItem(doc.get("type"), doc.get("source")); // use default id to increase throughput
         docToIndex++;
         if (docToIndex == BULK_SIZE) {
             this.executeBulk();

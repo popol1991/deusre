@@ -1,6 +1,8 @@
 package edu.cmu.lti.deusre.index.parser;
 
 import edu.cmu.lti.huiying.features.Generator;
+import opennlp.tools.sentdetect.SentenceDetectorME;
+import opennlp.tools.sentdetect.SentenceModel;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Document;
@@ -13,8 +15,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -22,13 +23,25 @@ import java.util.*;
  * Created by Kyle on 2/4/15.
  */
 public class XMLParser extends Parser {
+    private static SentenceDetectorME sdetector = null;
     public static int id = 0;
 
     private Generator generator;
 
-    public XMLParser() {
+    public XMLParser() throws IOException {
         this.extension = "xml";
         this.generator = new Generator();
+        if (sdetector == null) {
+            sdetector = initSentDetector();
+        }
+    }
+
+    private static SentenceDetectorME initSentDetector() throws IOException {
+        InputStream is = new FileInputStream("lib/en-sent.bin");
+        SentenceModel model = new SentenceModel(is);
+        SentenceDetectorME sdetector = new SentenceDetectorME(model);
+        is.close();
+        return sdetector;
     }
 
     @Override
@@ -42,6 +55,7 @@ public class XMLParser extends Parser {
             tableList[i].putAll(articleInfo);
             tableList[i].put("path", path.toString());
             docList[i] = new JSONObject();
+            docList[i].put("path", path.toString());
             docList[i].put("source", tableList[i].toJSONString());
             docList[i].put("type", "table");
             docList[i].put("id", String.valueOf(id++));
@@ -64,7 +78,22 @@ public class XMLParser extends Parser {
         // caption
         NodeList nList = doc.getElementsByTagName("caption");
         if (nList.getLength() != 0) {
-            retTable.put("caption", nList.item(0).getTextContent());
+            String caption = nList.item(0).getTextContent();
+            retTable.put("caption", caption);
+            String[] sentences = sdetector.sentDetect(caption);
+            if (sentences.length > 1) {
+                String shortCap = null;
+                if (sentences[0].toLowerCase().startsWith("table")) {
+                    if (sentences.length > 2) {
+                        shortCap = " ".join(sentences[0], sentences[1]);
+                    }
+                } else {
+                    shortCap = sentences[0];
+                }
+                if (shortCap != null) {
+                    retTable.put("short-caption", shortCap);
+                }
+            }
         }
         // footnotes
         nList = doc.getElementsByTagName("footnote");

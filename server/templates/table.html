@@ -1,0 +1,34 @@
+<!--<h2>{{ hit.id}}</h2>-->
+<h2>{{ hit["short-caption"] }}</h2>
+<h2>{{ hit["caption"] }}{% if "short-caption" in hit %}<a href="#">......</a>{% endif %}</h2>
+<h3>From: {{ hit['article-title']}}</h3>
+<br>
+<table>
+    <thead>
+    {% for row in hit.header_rows %}
+        <tr>
+        {% for header in row %}
+            <th>
+            {{ header.value }}
+            </th>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    </thead>
+    <tbody id="{{ hit.id }}" style="display:none">
+    {% if 'data_rows' in hit %}
+        {% for row in hit.data_rows %}
+        <tr>
+            {% if row %}
+            {% for value in row %}
+                <td id="cell" class="highlight_{{ value.highlight }}">
+                {{ value.text }}
+                </td>
+            {% endfor %}
+            {% endif %}
+        </tr>
+        {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+<a class="toggle" onclick="toggle({{hit.id}})">Show/Hide table.</a>

@@ -1,0 +1,38 @@
+  <div class="search-box-container" data-ng-controller='filterCtrl'>
+      <form data-parsley-validate action="./submit" method="get">
+        <input type="submit" class="search-button" value="Search">
+        <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
+        <table class="filter">
+		<tr class="filter_item" ng-repeat="filter in filterlist">
+            <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
+            </select></td>
+            <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min"/></td>
+            <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max"/></td>
+		</tr>
+        {% for filter in filterlist %}
+        <tr class="filter_item">
+            <td><select>
+                <option value="mainValue" {% if filter.name == "mainValue" %}selected{% endif %}>Value</option>
+                <option value="precision" {% if filter.name == "precision" %}selected{% endif %}>Error</option>
+                <option value="magnitude" {% if filter.name == "magnitude" %}selected{% endif %}>Magnitude</option>
+                <option value="pvalue" {% if filter.name == "pvalue" %}selected{% endif %}>p-value</option>
+                <option value="int_ratio" {% if filter.name == "int_ratio" %}selected{% endif %}>Integer Ratio</option>
+                <option value="float_ratio" {% if filter.name == "float_ratio" %}selected{% endif %}>Real Ratio</option>
+                <option value="mean" {% if filter.name == "mean" %}selected{% endif %}>Mean</option>
+                <option value="std" {% if filter.name == "std" %}selected{% endif %}>StdDev</option>
+                <option value="range" {% if filter.name == "range" %}selected{% endif %}>Range</option>
+                <option value="accuracy" {% if filter.name == "accuracy" %}selected{% endif %}>Accuracy</option>
+            </select></td>
+            <td><input name="{{ filter.name }}_min" value="{{ filter.min }}"/></td>
+            <td><input name="{{ filter.name }}_max" value="{{ filter.max }}"/></td>
+		</tr>
+        {% endfor %}
+        <tr>
+            <td class="dummy">Filter:</td>
+            <td class="dummy"><input disabled/></td>
+            <td class="dummy"><input disabled/></td>
+            <td><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>
+		</tr>
+		</table>
+    </form>
+  </div>

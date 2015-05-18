@@ -5,12 +5,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -49,10 +47,7 @@ public class FSWorkQueue extends WorkQueue {
     @Override
     public JSONObject[] next() {
         JSONObject[] ret = null;
-        try {
-            ret = parser.parse(next);
-        } finally {
-            return ret;
-        }
+        ret = parser.parse(next);
+        return ret;
     }
 }

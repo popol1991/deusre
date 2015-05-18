@@ -1,0 +1,25 @@
+<meta charset='utf-8'>
+<title>Scientific Data Search</title>
+<link rel='stylesheet' href='/static/css/reset.css'>
+<link rel='stylesheet' href='/static/css/index.css'>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/parsley.min.js"></script>
+<script src="/static/js/angular.min.js"></script>
+<script src="/static/js/filter.js"></script>
+<script>
+   function toggle(id) {
+       $("tbody#"+id).toggle();
+   };
+   function addfilter() {
+       var res = $(".results-container");
+       var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 40) + "px";
+       res.css("padding-top", newtop);
+   };
+   $(document).ready(function() {
+       var filterList = $('.filter_item');
+       var filterNum = filterList.length;
+       for (var i=0; i < filterNum; i++) {
+           addfilter();
+       }
+   });
+</script>

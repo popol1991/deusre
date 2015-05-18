@@ -49,7 +49,7 @@ class ES():
         }
         self.es.index(index=index, doc_type='doc', id=doc_id, body=body)
 
-    def text_search(self, q, page, size, index):
+    def text_search(self, q, page, size, index, highlight=True):
         query = self.mk_text_body(q, page, size, index)
         res = self.es.search(index=index, body=query)
         return ESResponse(res)
@@ -98,19 +98,19 @@ class ES():
         res = self.es.search(index=index, body=query)
         return ESResponse(res, match_all=True)
 
-    def mkbody(self, query, field, highlight=False):
+    def mkbody(self, query, field, highlight=False, type="best_fields", size=10):
         # prepare body
         qry = {
             "multi_match": {
                 "query": query,
                 "fields": field,
-                "type": "best_fields"
+                "type": type
             }
         }
         body = {
             "_source": True,
             "query": qry,
-            "size": 100
+            "size": size
         }
         if highlight:
             fields = dict()
@@ -142,17 +142,21 @@ class ES():
                             break
         return [w for w in nummatched]
 
-    def search_neuroelectro(self, query, weight, index, doc_type='table'):
+    def search_neuroelectro(self, query, weight, index, size, doc_type='table', type="best_fields", highlight=True):
         field = ["{0}^{1}".format(NEURO_FIELDS[i], weight[i]) for i in range(len(weight))]
-        body = self.mkbody(query, field)
-        body['highlight'] = {
-            'fields': {
-                'headers.header_*': {},
-                'data.data_*.row_header': {}
+        body = self.mkbody(query, field, type=type, size=size)
+        if highlight:
+            body['highlight'] = {
+                'fields': {
+                    'headers.header_*': {},
+                    'data.data_*.row_header': {}
+                }
             }
-        }
         res = self.es.search(index=index, doc_type=doc_type, body=body)
         return res
+
+    def index(self, index, doc_type, body):
+        self.es.create(index=index, doc_type=doc_type, body=body)
 
 class ESResponse():
     def __init__(self, res, match_all=False):
@@ -162,6 +166,7 @@ class ESResponse():
         self.ids = []
         for hit in res['hits']['hits']:
             jsn = hit['_source']
+            jsn['_id'] = hit['_id']
             if 'highlight' in hit:
                 jsn['highlight'] = hit['highlight']
             self.hits.append(jsn)

@@ -6,6 +6,7 @@ import edu.cmu.lti.deusre.index.workqueue.FSWorkQueue;
 import edu.cmu.lti.deusre.index.workqueue.WorkQueue;
 import edu.cmu.lti.deusre.se.ElasticSearchIndex;
 import edu.cmu.lti.deusre.se.Index;
+import org.apache.commons.io.FilenameUtils;
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 /**
@@ -22,21 +24,53 @@ import java.util.stream.Collectors;
 public class IndexMain {
     public static final String CONFIG_PATH = "config.properties";
 
-    public static void main(String[] args) {
+    public static HashMap<String, Long> IDMap;
+
+    public static void main(String[] args) throws IOException {
         Properties config = readConfig(CONFIG_PATH);
         // initialization
         Index index = initIndexServer(config);
         Parser parser = new XMLParser();
         String dir = config.getProperty("data");
         WorkQueue wq = new FSWorkQueue(dir, parser);
+        IDMap = initIDMap(config.getProperty("id_map"));
         while (wq.hasNext()) {
             JSONObject[] docList = wq.next();
             if (docList == null) continue;
+            int tableId = 0;
             for (Map<String, String> doc : docList) {
+                long internalId = getInternalId(doc.get("path"));
+                internalId = internalId * 100 + tableId;
+                tableId++;
+                doc.put("id", String.valueOf(internalId));
                 index.addDoc(doc);
             }
         }
         index.close();
+    }
+
+    private static HashMap<String,Long> initIDMap(String path) throws FileNotFoundException {
+        HashMap<String, Long> retMap = new HashMap<>();
+        Scanner sc = new Scanner(new File(path));
+        while (sc.hasNextLine()) {
+            String line = sc.nextLine();
+            String[] ids = line.split(",");
+            retMap.put(ids[0], Long.parseLong(ids[2]));
+        }
+        sc.close();
+        return retMap;
+    }
+
+    private static long getInternalId(String path) {
+        String filename = FilenameUtils.getName(path);
+        long internalId = 0;
+        try {
+            internalId = IDMap.get(filename);
+        } catch (NullPointerException e) {
+            System.err.println(path);
+            System.exit(1);
+        }
+        return internalId;
     }
 
     private static Properties readConfig(String path) {

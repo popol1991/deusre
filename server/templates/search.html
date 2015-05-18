@@ -21,30 +21,14 @@
     </script>
 </head>
 
+<body>
 <!-- Title and search box -->
 <header class="jumbotron">
-  <h1 class="title"><a>EAGER</a></h1>
-  <div class="search-box-container" data-ng-controller='filterCtrl'>
-      <form data-parsley-validate action="./" method="get">
-          <a class="about right" href="http://boston.lti.cs.cmu.edu/eager/deusre/about/elsevier.html">ABOUT</a>
-        <input type="submit" class="search-button" value="Search">
-        <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
-        <table class="filter">
-		<tr ng-repeat="filter in filterlist">
-            <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
-            </select></td>
-            <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min"/></td>
-            <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max"/></td>
-		</tr>
-        <tr>
-            <td class="dummy">Filter:</td>
-            <td class="dummy"><input disabled/></td>
-            <td class="dummy"><input disabled/></td>
-            <td><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>
-		</tr>
-		</table>
-    </form>
-  </div>
+     <h1 class="title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">EAGER</a></h1>
+    {% include 'header.html' %}
+    <div class="info">
+      <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/elsevier.html">Find more about the dataset</a>
+    </div>
 </header>
 
 <!-- Listing of search results -->
@@ -58,15 +42,6 @@
       <!--<h2>{{ hit.id}}</h2>-->
       <h2>{{ hit.caption }}</h2>
       <h3>From: {{ hit['article-title']}}</h3>
-      <!--<p>{{hit.journal}}, {{hit.issn}}, {{hit.volume}}, {{hit.issue}}, {{hit.page}}, {{hit.date}}</p>-->
-      <!--<p>-->
-          <!--<b>Authors: </b>-->
-          <!--<span>{{ ", ".join(hit.authors) }}</span>-->
-      <!--</p>-->
-      <!--<p>-->
-          <!--<b>Keywords: </b>-->
-          <!--<span>{{ ", ".join(hit.keywords) }}</span>-->
-      <!--</p>-->
       <br>
       <table>
           <thead>
