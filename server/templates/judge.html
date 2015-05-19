@@ -13,6 +13,7 @@
      {% include 'header.html' %}
      <div class="info">
        <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/neuroelectro.html">Find more about the dataset</a>
+       <a class="right" href="http://boston.lti.cs.cmu.edu/eager/deusre/about/judgescale.html">Relevance Scales</a>
      </div>
      <a class="logout" href="judge/logout">Log out</a>
    </header>
@@ -37,21 +38,21 @@
 
             <br>
             <!-- Radio button for judgements -->
-            <image class="rel-mark" src="/static/image/question.jpg" style="width:15px" title="* Key: This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine;
+            Degree of Relevance: 
+            Key Result <input type="radio" name="rel_{{hit.id}}" value=4>
+            Highly Relevant <input type="radio" name="rel_{{hit.id}}" value=3>
+            Relevant <input type="radio" name="rel_{{hit.id}}" value=2>
+            Not Relevant <input type="radio" name="rel_{{hit.id}}" value=1>
+            Broken <input type="radio" name="rel_{{hit.id}}" value=0>
+            <image class="rel-mark" src="/static/image/question.jpg" style="width:15px" title="* Key Result: This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine;
 
-* HRel: The content of this table provides substantial information on the topic;
+* Highly Relevant: The content of this table provides substantial information on the topic;
 
-* Rel: The content of this table provides some information on the topic, which may be minimal;
+* Relevangt: The content of this table provides some information on the topic, which may be minimal;
 
-* Non: The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query;
+* Not Relevant: The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query;
 
 * Broken: This table is broken or not readable."/>
-            Degree of Relevance: 
-            Broken <input type="radio" name="rel_{{hit.id}}" value=0>
-            Non <input type="radio" name="rel_{{hit.id}}" value=1>
-            Rel <input type="radio" name="rel_{{hit.id}}" value=2>
-            HRel <input type="radio" name="rel_{{hit.id}}" value=3>
-            Key <input type="radio" name="rel_{{hit.id}}" value=4>
             <span id="rel_{{hit.id}}" style="display:none">{{hit._id}}</span>
          </article>
          {% endfor %}
