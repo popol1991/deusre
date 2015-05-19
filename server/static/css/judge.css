@@ -1,3 +1,24 @@
+.rel-scales {
+    margin-top: 5px;
+}
+.rel-radio {
+    margin-right: 10px;
+}
+.rel-mark {
+    width: 15px;
+    margin-left: 20px;
+    vertical-align: text-bottom;
+}
+table.meta {
+    border-collapse: separate;
+    border-spacing: 0 5px;
+}
+.meta tr,
+.meta td {
+    padding: 0 0 0 0;
+    border: none;
+    line-height: 15px;
+}
 .save-button {
     width: 100%;
     max-width: 800px;

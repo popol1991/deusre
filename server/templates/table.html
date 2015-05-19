@@ -1,7 +1,20 @@
 <!--<h2>{{ hit.id}}</h2>-->
-<h2>{{ hit["short-caption"] }}</h2>
-<!-- <h2>{{ hit["caption"] }}{% if "short-caption" in hit %}<a href="#">......</a>{% endif %}</h2>
- --><h3>From: {{ hit['article-title']}}</h3>
+<h2>{{ hit['caption'] }}</h2>
+<table class="meta">
+    <col width="180px">
+    <tr><td><b>Paper Title:</b></td> <td>{{ hit['article-title']}}
+    </td></tr>
+    {% if hit['journal']|length > 0 %}<tr><td><b>Journal:</b></td> <td>{{ hit['journal']}}
+    </td></tr>{% endif %}
+    {% if hit['date']|length > 0 %}<tr><td><b>Publication Date:</b></td> <td>{{ hit['date']}}
+    </td></tr>{% endif %}
+    <tr>
+        <td></td>
+        <td>
+    <a class="toggle right" onclick="toggle({{hit.id}})">Show/Hide Complete</a>
+        </td>
+    </tr>
+</table>
 <br>
 <table>
     <thead>
@@ -15,7 +28,22 @@
         </tr>
     {% endfor %}
     </thead>
-    <tbody id="{{ hit.id }}" style="display:none">
+    <tbody id="{{ hit.id }}-preview" {% if hit.header_rows|length > 0 %}style="display:none"{% endif %}>
+    {% if 'data_rows' in hit %}
+        {% for row in hit.data_rows[:2] %}
+        <tr>
+            {% if row %}
+            {% for value in row %}
+                <td id="cell" class="highlight_{{ value.highlight }}">
+                {{ value.text }}
+                </td>
+            {% endfor %}
+            {% endif %}
+        </tr>
+        {% endfor %}
+    {% endif %}
+    </tbody>
+    <tbody id="{{ hit.id }}-full" style="display:none">
     {% if 'data_rows' in hit %}
         {% for row in hit.data_rows %}
         <tr>
@@ -31,4 +59,3 @@
     {% endif %}
     </tbody>
 </table>
-<a class="toggle" onclick="toggle({{hit.id}})">Show/Hide table.</a>

@@ -38,22 +38,25 @@
 
             <br>
             <!-- Radio button for judgements -->
-            Degree of Relevance: 
-            Key Result <input type="radio" name="rel_{{hit.id}}" value=4>
-            Highly Relevant <input type="radio" name="rel_{{hit.id}}" value=3>
-            Relevant <input type="radio" name="rel_{{hit.id}}" value=2>
-            Not Relevant <input type="radio" name="rel_{{hit.id}}" value=1>
-            Broken <input type="radio" name="rel_{{hit.id}}" value=0>
-            <image class="rel-mark" src="/static/image/question.jpg" style="width:15px" title="* Key Result: This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine;
+            <div class="rel-scales">
+                <b>Degree of Relevance: </b>
+                Key Result <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=4>
+                Highly Relevant <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=3>
+                Relevant <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=2>
+                Not Relevant <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=1>
+                Broken <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=0>
+                <image class="rel-mark" src="/static/image/question.jpg" title="Scales for Relevance Judgements
+    * Key Result: This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine;
 
-* Highly Relevant: The content of this table provides substantial information on the topic;
+    * Highly Relevant: The content of this table provides substantial information on the topic;
 
-* Relevangt: The content of this table provides some information on the topic, which may be minimal;
+    * Relevant: The content of this table provides some information on the topic, which may be minimal;
 
-* Not Relevant: The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query;
+    * Not Relevant: The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query;
 
-* Broken: This table is broken or not readable."/>
-            <span id="rel_{{hit.id}}" style="display:none">{{hit._id}}</span>
+    * Broken: This table is broken or not readable."/>
+                <span id="rel_{{hit.id}}" style="display:none">{{hit._id}}</span>
+            </div>
          </article>
          {% endfor %}
 

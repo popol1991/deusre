@@ -8,11 +8,12 @@
 <script src="/static/js/filter.js"></script>
 <script>
    function toggle(id) {
-       $("tbody#"+id).toggle();
+       $("tbody#"+id+"-preview").toggle();
+       $("tbody#"+id+"-full").toggle();
    };
    function addfilter() {
        var res = $(".results-container");
-       var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 40) + "px";
+       var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 25) + "px";
        res.css("padding-top", newtop);
    };
    $(document).ready(function() {
