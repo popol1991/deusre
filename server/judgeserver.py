@@ -24,7 +24,8 @@ es = ES(server)
 
 class User(UserMixin):
     # proxy for a database of users
-    user_database = {"demo": ("demo", "demo")}
+    user_database = {"demo" : ("demo", "demo"),
+                     "kyle": ("kyle", "kyle")}
 
     def __init__(self, username, password):
         self.id = username

@@ -2,8 +2,18 @@
 <html lang='en' ng-app="filter">
    <head>
    {% include 'head.html' %}
+   <script src='/static/js/jquery.tooltipster.min.js'></script>
    <link rel='stylesheet' href='/static/css/judge.css'>
-   </head>
+   <link rel='stylesheet' href='/static/css/tooltipster.css'>
+   <script>
+    $(document).ready(function() {
+        $('.tooltip').tooltipster({
+            content: $('<style>td {padding: 2px 2px 2px 5px;} table {margin-top: 8px;}</style><center><b>Scales for Relevance Judgements</b><center><table style="font-size:14px;"><col width="135px"><tr><td style="vertical-align:middle;">Key Result:</td><td>This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine;</td></tr><tr><td style="vertical-align:middle;">Highly Relevant:</td><td>The content of this table provides substantial information on the topic;</td></tr><tr><td style="vertical-align:middle;">Relevant:</td><td>The content of this table provides some information on the topic, which may be minimal;</td></tr><tr><td style="vertical-align:middle;">Not Relevant:</td><td>The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query;</td></tr><tr><td style="vertical-align:middle;">Broken:</td><td>This table is broken or not readable.</td></tr><table>'),
+            theme: 'my-custom-theme'
+        });
+    });
+   </script>
+</head>
 
 <body>
    <!-- Title and search box -->
@@ -38,16 +48,7 @@
                 Relevant <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=2>
                 Not Relevant <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=1>
                 Broken <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=0>
-                <image class="rel-mark" src="/static/image/question.jpg" title="Scales for Relevance Judgements
-    * Key Result: This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine;
-
-    * Highly Relevant: The content of this table provides substantial information on the topic;
-
-    * Relevant: The content of this table provides some information on the topic, which may be minimal;
-
-    * Not Relevant: The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query;
-
-    * Broken: This table is broken or not readable."/>
+                <image class="tooltip rel-mark" src="/static/image/question.jpg" />
                 <span id="rel_{{hit.id}}" style="display:none">{{hit._id}}</span>
             </div>
          </article>
