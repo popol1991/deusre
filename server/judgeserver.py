@@ -14,6 +14,7 @@ COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accura
 FILTER_LIST    = CELL_FEATURE + COLUMN_FEATURE
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "BLAHBLAHBLAH"
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -124,5 +125,4 @@ def judge():
     return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist)
 
 if __name__ == "__main__":
-    app.config["SECRET_KEY"] = "BLAHBLAHBLAH"
     app.run(host="0.0.0.0", port=8081, debug=True)
