@@ -20,13 +20,6 @@
 
    <!-- Listing of search results -->
    <main class="results-container">
-      {% if params != None and len != 0 %}
-      <p class="notice">
-         NOTICE: The results are displayed in RANDOM order. <br>
-         Please examine the first 5 results to familiarize yourself with the topic
-         before starting to make relevance assessments.
-      </p>
-      {% endif  %}
       {% if params != None and len == 0 %}
       <p class="notice">No results found.</p>
       {% endif  %}
