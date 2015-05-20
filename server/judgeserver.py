@@ -23,7 +23,7 @@ es = ES(server)
 
 class User(UserMixin):
     # proxy for a database of users
-    user_database = {"kyle": ("kyle", "kyle")}
+    user_database = {"demo": ("demo", "demo")}
 
     def __init__(self, username, password):
         self.id = username
@@ -56,7 +56,7 @@ def login():
     if user:
         if user[1] == password:
             login_user(User(userid, password))
-            return redirect(url_for('judge'))
+            return redirect("http://boston.lti.cs.cmu.edu/eager/deusre/about/judgescale.html")
     return render_template("login.html")
 
 @app.route('/deusre/judge/logout')
