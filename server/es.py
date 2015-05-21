@@ -4,7 +4,7 @@ import re
 from elasticsearch import Elasticsearch
 from operator import itemgetter
 
-FIELDS = ["article-title", "caption", "citations", "data_*.row_header", "footnotes", "headers.header_*", "headings",
+FIELDS = ["article-title", "caption", "citations", "data.data_*.row_header", "footnotes", "headers.header_*", "headings",
           "keywords"]
 CELL_FEATURE = ["magnitude", "mainValue", "precision", "pvalue"]
 COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accuracy", "magnitude"]
@@ -167,6 +167,7 @@ class ESResponse():
         for hit in res['hits']['hits']:
             jsn = hit['_source']
             jsn['_id'] = hit['_id']
+            jsn['_score'] = hit['_score']
             if 'highlight' in hit:
                 jsn['highlight'] = hit['highlight']
             self.hits.append(jsn)
