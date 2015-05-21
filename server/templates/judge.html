@@ -55,14 +55,14 @@
          {% endfor %}
 
          {% if params != None and len != 0 %}
-         <button class="right save-button" onclick="save()">Save and Logout</button>
-         <button class="save-button" onclick="save()">Save and Next</button>
+         <button class="right save-button" onclick="save('judge/logout')">Save and Logout</button>
+         <button class="save-button" onclick="save('judge')">Save and Next</button>
          {% endif  %}
       </section>
    </main>
 
    <script>
-      function save() {
+      function save(next) {
           var i = 0;
           var reldict = {};
           for (;i<{{len}};i++) {
@@ -82,7 +82,7 @@
           $.post("judge/result", JSON.stringify(judge), function(data) {
               if (data == 'succeed') {
                   alert("Your assesments have been successfully saved!");
-                  window.location.replace('judge');
+                  window.location.replace(next);
               } else {
                   // server side failed to store judge result
                   alert("Server side failure!");
