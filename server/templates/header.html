@@ -22,6 +22,7 @@
                 <option value="std" {% if filter.name == "std" %}selected{% endif %}>StdDev</option>
                 <option value="range" {% if filter.name == "range" %}selected{% endif %}>Range</option>
                 <option value="accuracy" {% if filter.name == "accuracy" %}selected{% endif %}>Accuracy</option>
+                <option value="mag" {% if filter.name == "magnitude" %}selected{% endif %}>Magnitude</option>
             </select></td>
             <td><input name="{{ filter.name }}_min" value="{{ filter.min }}"/></td>
             <td><input name="{{ filter.name }}_max" value="{{ filter.max }}"/></td>

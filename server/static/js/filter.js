@@ -36,7 +36,7 @@ app.controller('filterCtrl', function($scope) {
         name: 'mean'
     }, {
         id: 8,
-        label: 'Stddev',
+        label: 'StdDev',
         name: 'std'
     }, {
         id: 9,
@@ -48,7 +48,7 @@ app.controller('filterCtrl', function($scope) {
         name: 'accuracy'
     }, {
         id: 11,
-        label: 'magnitude',
+        label: 'Magnitude',
         name: 'mag'
     }
     ];

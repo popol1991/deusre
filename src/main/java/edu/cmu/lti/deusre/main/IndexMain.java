@@ -40,9 +40,11 @@ public class IndexMain {
             int tableId = 0;
             for (Map<String, String> doc : docList) {
                 long internalId = getInternalId(doc.get("path"));
-                internalId = internalId * 100 + tableId;
-                tableId++;
-                doc.put("id", String.valueOf(internalId));
+                if (internalId != -1) {
+                    internalId = internalId * 100 + tableId;
+                    tableId++;
+                    doc.put("id", String.valueOf(internalId));
+                }
                 index.addDoc(doc);
             }
         }
@@ -67,8 +69,7 @@ public class IndexMain {
         try {
             internalId = IDMap.get(filename);
         } catch (NullPointerException e) {
-            System.err.println(path);
-            System.exit(1);
+            return -1;
         }
         return internalId;
     }

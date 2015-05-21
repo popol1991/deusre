@@ -19,10 +19,10 @@
    <!-- Title and search box -->
    <!-- Title and search box -->
    <header class="jumbotron">
-     <h1 class="title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">EAGER</a></h1>
+     <h1 class="neuro-title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">Neuroscience<br>Table Search</a></h1>
      {% include 'header.html' %}
      <div class="info">
-       <a class="right" href="http://boston.lti.cs.cmu.edu/eager/deusre/about/neuroelectro.html">Find more about the dataset</a>
+       <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/neuroelectro.html"><center>Find more about the dataset</center></a>
        <a class="instruction" href="http://boston.lti.cs.cmu.edu/eager/deusre/about/judgescale.html">Instruction</a>
      </div>
      <a class="logout" href="judge/logout">Log out</a>
@@ -55,7 +55,8 @@
          {% endfor %}
 
          {% if params != None and len != 0 %}
-         <button class="save-button" onclick="save()">Save</button>
+         <button class="right save-button" onclick="save()">Save and Logout</button>
+         <button class="save-button" onclick="save()">Save and Next</button>
          {% endif  %}
       </section>
    </main>

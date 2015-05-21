@@ -260,29 +260,29 @@ public class XMLParser extends Parser {
         articleInfo.put("keywords", listFromXml(doc, "keyword"));
 
 //        // arXiv specific info
-//        Set<String> domainSet = new HashSet<String>();
-//        JSONArray subdomainAry = new JSONArray();
-//        Node link = doc.getElementsByTagName("link").item(0);
-//        articleInfo.put("link", link.getTextContent());
-//        NodeList domainList = doc.getElementsByTagName("domain");
-//        for (int i = 0; i < domainList.getLength(); i++) {
-//            Node domain = domainList.item(i);
-//            Element domainElm = (Element) domain;
-//            NodeList subList = domainElm.getElementsByTagName("subdomain");
-//            if (subList.getLength() != 0) {
-//                Node subdomain = subList.item(0);
-//                domain.removeChild(subdomain);
-//                subdomainAry.add(String.format("%s - %s",
-//                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
-//            }
-//            domainSet.add(domain.getTextContent().trim());
-//        }
-//        JSONArray domainAry = new JSONArray();
-//        for (String domain : domainSet) {
-//            domainAry.add(domain);
-//        }
-//        articleInfo.put("domains", domainAry);
-//        articleInfo.put("subdomains", subdomainAry);
+        Set<String> domainSet = new HashSet<String>();
+        JSONArray subdomainAry = new JSONArray();
+        Node link = doc.getElementsByTagName("link").item(0);
+        articleInfo.put("link", link.getTextContent());
+        NodeList domainList = doc.getElementsByTagName("domain");
+        for (int i = 0; i < domainList.getLength(); i++) {
+            Node domain = domainList.item(i);
+            Element domainElm = (Element) domain;
+            NodeList subList = domainElm.getElementsByTagName("subdomain");
+            if (subList.getLength() != 0) {
+                Node subdomain = subList.item(0);
+                domain.removeChild(subdomain);
+                subdomainAry.add(String.format("%s - %s",
+                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
+            }
+            domainSet.add(domain.getTextContent().trim());
+        }
+        JSONArray domainAry = new JSONArray();
+        for (String domain : domainSet) {
+            domainAry.add(domain);
+        }
+        articleInfo.put("domains", domainAry);
+        articleInfo.put("subdomains", subdomainAry);
 
         return articleInfo;
     }
