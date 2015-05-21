@@ -4,7 +4,7 @@ import re
 from elasticsearch import Elasticsearch
 from operator import itemgetter
 
-FIELDS = ["article-title", "caption", "citations", "data.data_*.row_header", "footnotes", "headers.header_*", "headings",
+FIELDS = ["article-title", "abstract", "caption", "citations", "data.data_*.row_header", "footnotes", "headers.header_*", "headings",
           "keywords"]
 CELL_FEATURE = ["magnitude", "mainValue", "precision", "pvalue"]
 COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accuracy", "magnitude"]

@@ -258,6 +258,10 @@ public class XMLParser extends Parser {
         articleInfo.put("article-title", title.getTextContent());
         articleInfo.put("authors", listFromXml(doc, "author"));
         articleInfo.put("keywords", listFromXml(doc, "keyword"));
+        NodeList abs = doc.getElementsByTagName("abstract");
+        if (abs.getLength() != 0){
+            articleInfo.put("abstract", abs.item(0).getTextContent());
+        }
 
 //        // arXiv specific info
         Set<String> domainSet = new HashSet<String>();
