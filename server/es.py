@@ -142,9 +142,16 @@ class ES():
                             break
         return [w for w in nummatched]
 
-    def search_neuroelectro(self, query, weight, index, size, doc_type='table', type="best_fields", highlight=True):
+    def search_with_weight(self, query, weight, index, size, doc_type='table', type="best_fields", highlight=True, filter=None):
         field = ["{0}^{1}".format(NEURO_FIELDS[i], weight[i]) for i in range(len(weight))]
         body = self.mkbody(query, field, type=type, size=size)
+        if filter is not None:
+            filter_query = self.mk_filter(filter)
+            body = {
+                "query" : {
+                    "filtered" : dict(query=body['query'], filter=filter_query)
+                }
+            }
         if highlight:
             body['highlight'] = {
                 'fields': {

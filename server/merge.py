@@ -1,7 +1,7 @@
 from random import shuffle
 from es import ESResponse
 
-MAX_POOL_SIZE = 8
+MAX_POOL_SIZE = 50
 
 def interleave(ranklist, filters):
     reranked = []

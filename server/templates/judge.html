@@ -8,7 +8,7 @@
    <script>
     $(document).ready(function() {
         $('.tooltip').tooltipster({
-            content: $('<style>td {padding: 2px 2px 2px 5px;} table {margin-top: 8px;}</style><center><b>Scales for Relevance Judgements</b><center><table style="font-size:14px;"><col width="135px"><tr><td style="vertical-align:middle;">Key Result:</td><td>This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine;</td></tr><tr><td style="vertical-align:middle;">Highly Relevant:</td><td>The content of this table provides substantial information on the topic;</td></tr><tr><td style="vertical-align:middle;">Relevant:</td><td>The content of this table provides some information on the topic, which may be minimal;</td></tr><tr><td style="vertical-align:middle;">Not Relevant:</td><td>The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query;</td></tr><tr><td style="vertical-align:middle;">Broken:</td><td>This table is broken or not readable.</td></tr><table>'),
+            content: $('<style>td {padding: 2px 2px 2px 5px;} table {margin-top: 8px;}</style><center><b>Scales for Relevance Judgements</b><center><table style="font-size:14px;"><col width="135px"><tr><td style="vertical-align:middle;">Key Result:</td><td>This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine,</td></tr><tr><td style="vertical-align:middle;">Highly Relevant:</td><td>The content of this table provides substantial information on the topic,</td></tr><tr><td style="vertical-align:middle;">Relevant:</td><td>The content of this table provides some information on the topic, which may be minimal,</td></tr><tr><td style="vertical-align:middle;">Not Relevant:</td><td>The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query,</td></tr><tr><td style="vertical-align:middle;">Broken:</td><td>This table is broken or not readable.</td></tr><table>'),
             theme: 'my-custom-theme'
         });
     });
@@ -22,7 +22,7 @@
      <h1 class="neuro-title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">Neuroscience<br>Table Search</a></h1>
      {% include 'header.html' %}
      <div class="info">
-       <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/neuroelectro.html"><center>Find more about the dataset</center></a>
+       <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/neuroelectro.html"><center>About the dataset</center></a>
        <a class="instruction" href="http://boston.lti.cs.cmu.edu/eager/deusre/about/judgescale.html">Instruction</a>
      </div>
      <a class="logout" href="judge/logout">Log out</a>
@@ -30,6 +30,9 @@
 
    <!-- Listing of search results -->
    <main class="results-container">
+      {% if params != None and len != 0 %}
+      <p class="notice">Results are displayed in random order.</p>
+      {% endif  %}
       {% if params != None and len == 0 %}
       <p class="notice">No results found.</p>
       {% endif  %}

@@ -5,8 +5,9 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask.ext.login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 
 DEFAULT_INDEX  = 'neuroelectro'
+DEFAULT_FILTERS = None
 JUDGE_INDEX    = 'judge'
-DEFAULT_SIZE   = 10
+DEFAULT_SIZE   = 50
 BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1], # neuron
                  [1, 1, 2, 5, 5, 1]] # property
 CELL_FEATURE   = ["magnitude", "mainValue", "precision", "pvalue"]
@@ -21,6 +22,13 @@ login_manager.init_app(app)
 with open('config.txt') as fin:
     server = fin.readline().strip()
 es = ES(server)
+
+def build_app(index, domain):
+    global DEFAULT_INDEX
+    global DEFAULT_FILTERS
+    DEFAULT_INDEX = index
+    DEFAULT_FILTERS = [domain]
+    return app
 
 class User(UserMixin):
     # proxy for a database of users
@@ -110,13 +118,13 @@ def judge():
     else:
         #init_rank = es.text_search(query, 0, DEFAULT_SIZE, index=DEFAULT_INDEX, highlight=False)
         # search with neuron best weight and best_fields type
-        rank_neuro_best = es.search_neuroelectro(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields")
+        rank_neuro_best = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS)
         # search with property best weight and best_fields type
-        rank_prop_best = es.search_neuroelectro(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields")
+        rank_prop_best = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS)
         # search with neuron best weight and cross_fields type
-        rank_neuro_cross = es.search_neuroelectro(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields")
+        rank_neuro_cross = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS)
         # search with property best weight and cross_fields type
-        rank_prop_cross = es.search_neuroelectro(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields")
+        rank_prop_cross = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS)
         ranklist = [rank_neuro_best, rank_prop_best, rank_neuro_cross, rank_prop_cross]
         res = interleave(ranklist, params)
 
