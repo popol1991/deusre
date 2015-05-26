@@ -1,9 +1,11 @@
+import pickle
 from datetime import datetime
 from merge import interleave
 from es import ES
 from flask import Flask, render_template, request, redirect, url_for
 from flask.ext.login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 
+ACCOUNT_FILE = ".account"
 DEFAULT_INDEX  = 'neuroelectro'
 DEFAULT_FILTERS = None
 JUDGE_INDEX    = 'judge'
@@ -34,6 +36,17 @@ class User(UserMixin):
     # proxy for a database of users
     user_database = {"demo" : ("demo", "demo"),
                      "kyle": ("kyle", "kyle")}
+    empty = True
+    with open(ACCOUNT_FILE) as fin:
+        users = {}
+        content = "\n".join(fin.readlines())
+        if len(content) != 0:
+            empty = False
+    if not empty:
+        fin = open(ACCOUNT_FILE)
+        users = pickle.load(fin)
+        user_database.update(users)
+        fin.close()
 
     def __init__(self, username, password):
         self.id = username
@@ -43,6 +56,16 @@ class User(UserMixin):
     def get(cls, id):
         return cls.user_database.get(id)
 
+    @classmethod
+    def user_exists(cls, id):
+        return id in cls.user_database
+
+    @classmethod
+    def create_user(cls, id, password):
+        cls.user_database[id] = (id, password)
+        with open(ACCOUNT_FILE, "w") as fout:
+            pickle.dump(cls.user_database, fout)
+
 @login_manager.user_loader
 def load_user(userid):
     user = User.get(userid)
@@ -51,6 +74,19 @@ def load_user(userid):
 @login_manager.unauthorized_handler
 def unauthorized():
     return redirect(url_for('login'))
+
+@app.route('/deusre/judge/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'GET':
+        return render_template("signup.html")
+    form = request.form
+    userid = form['username']
+    if User.user_exists(userid):
+        return "existed"
+    else:
+        password = form['password']
+        User.create_user(userid, password)
+        return "success"
 
 @app.route('/deusre/judge/login', methods=['GET', 'POST'])
 def login():
