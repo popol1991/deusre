@@ -271,12 +271,14 @@ public class XMLParser extends Parser {
         if (abs.getLength() != 0){
             articleInfo.put("abstract", abs.item(0).getTextContent());
         }
+        NodeList link = doc.getElementsByTagName("link");
+        if (link.getLength() != 0) {
+            articleInfo.put("link", link.item(0).getTextContent());
+        }
 
 //        // arXiv specific info
 //        Set<String> domainSet = new HashSet<String>();
 //        JSONArray subdomainAry = new JSONArray();
-//        Node link = doc.getElementsByTagName("link").item(0);
-//        articleInfo.put("link", link.getTextContent());
 //        NodeList domainList = doc.getElementsByTagName("domain");
 //        for (int i = 0; i < domainList.getLength(); i++) {
 //            Node domain = domainList.item(i);
