@@ -60,8 +60,8 @@ def route(path):
     res = make_response(requests.get(target, data=data, params=request.args).content)
     return res
 
-@app.route("/deusre/neuroelectro/")
 @app.route("/deusre/neuroelectro/submit")
+@app.route("/deusre/neuroelectro/")
 def classify_search():
     #: build structured query to elasticsearch
     params = request.args
@@ -72,7 +72,7 @@ def classify_search():
     query_type = logistic.classify(vector)
     qtype = "Neuron" if query_type == 0 else "Property"
     weight = BEST_WEIGHT[query_type]
-    res = es.search_neuroelectro(query, weight, NEURO_INDEX, size=DEFAULT_SIZE, type="cross_fields")
+    res = es.search_with_weight(query, weight, NEURO_INDEX, size=DEFAULT_SIZE, type="cross_fields")
     res = ESResponse(res)
     #return render_template('search.html', hits=res, len=len(res), params=params)
     hits = res.rerank(params)
@@ -190,8 +190,8 @@ def arxiv():
             hit['subject'] = ", ".join(hit['domains'])
     return render_template('arxiv.html', hits=res, len=len(res), params=params)
 
-@app.route("/deusre/search/")
 @app.route("/deusre/search/submit")
+@app.route("/deusre/search/")
 def search():
     #: build structured query to elasticsearch
     params = request.args

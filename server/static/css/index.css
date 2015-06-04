@@ -262,3 +262,13 @@ textarea.parsley-error {
   opacity: 1;
 }
 
+table.meta {
+    border-collapse: separate;
+    border-spacing: 0 5px;
+}
+.meta tr,
+.meta td {
+    padding: 0 0 0 0;
+    border: none;
+    line-height: 15px;
+}

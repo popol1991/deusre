@@ -10,9 +10,10 @@
     <script src="/static/js/angular.min.js"></script>
     <script src="/static/js/filter.js"></script>
     <script>
-        function toggle(id) {
-            $("tbody#"+id).toggle();
-        };
+       function toggle(id) {
+           $("tbody#"+id+"-preview").toggle();
+           $("tbody#"+id+"-full").toggle();
+       };
         function addfilter() {
             var res = $(".results-container");
             var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 40) + "px";
