@@ -5,7 +5,7 @@ app.config(['$interpolateProvider', function($interpolateProvider) {
     $interpolateProvider.endSymbol(']}');
 }]);
 
-app.controller('filterCtrl', function($scope) {
+app.controller('filterCtrl', ['$scope', '$location', function($scope, $location) {
     $scope.filters = [{
         id: 1,
         label: 'Value',
@@ -17,7 +17,7 @@ app.controller('filterCtrl', function($scope) {
     }, {
         id: 3,
         label: 'Magnitude',
-        name: 'magnitude'
+        name: 'mag'
     }, {
         id: 4,
         label: 'p-value',
@@ -61,4 +61,51 @@ app.controller('filterCtrl', function($scope) {
             selected: $scope.filters[0]
         });
     }
-});
+
+    var parseLocation = function(location) {
+        var pairs = location.substring(1).split("&");
+        var obj = {};
+        var pair;
+        var i;
+
+        for ( i in pairs ) {
+          if ( pairs[i] === "" ) continue;
+
+          pair = pairs[i].split("=");
+          obj[ decodeURIComponent( pair[0] ) ] = decodeURIComponent( pair[1] );
+        }
+
+        return obj;
+    };
+
+    $scope.init = function() {
+        var location = window.location.search;
+        var params = parseLocation(location);
+        var filterdict = {}
+        for (var filter in params) {
+            if (params.hasOwnProperty(filter)) {
+                if (filter != "q") {
+                    var info = filter.split("_"); 
+                    name = info[0];
+                    bound = info[1]
+                    if ( !filterdict.hasOwnProperty(name) ) {
+                        filterdict[name] = {};
+                    }
+                    filterdict[name][bound] = params[filter];
+                }
+            }
+        }
+        for (var i in $scope.filters) {
+            var filter = jQuery.extend({}, $scope.filters[i]);
+            if (filterdict.hasOwnProperty(filter.name)) {
+                filter['min'] = filterdict[filter.name]['min'];
+                filter['max'] = filterdict[filter.name]['max'];
+                $scope.filterlist.push({
+                    selected: filter 
+                })
+            }
+        }
+    }
+
+    $scope.init();
+}]);
