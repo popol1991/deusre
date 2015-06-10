@@ -33,18 +33,22 @@ public class IndexMain {
         Parser parser = new XMLParser();
         String dir = config.getProperty("data");
         WorkQueue wq = new FSWorkQueue(dir, parser);
-        IDMap = initIDMap(config.getProperty("id_map"));
+//        IDMap = initIDMap(config.getProperty("id_map"));
         while (wq.hasNext()) {
             JSONObject[] docList = wq.next();
             if (docList == null) continue;
             int tableId = 0;
             for (Map<String, String> doc : docList) {
-                long internalId = getInternalId(doc.get("path"));
-                if (internalId != -1) {
-                    internalId = internalId * 100 + tableId;
-                    tableId++;
-                    doc.put("id", String.valueOf(internalId));
-                }
+                String pathAsId = doc.get("path");
+                String id = pathAsId + "." + tableId;
+                tableId++;
+                doc.put("id", id);
+//                long internalId = getInternalId(doc.get("path"));
+//                if (internalId != -1) {
+//                    internalId = internalId * 100 + tableId;
+//                    tableId++;
+//                    doc.put("id", String.valueOf(internalId));
+//                }
                 index.addDoc(doc);
             }
         }

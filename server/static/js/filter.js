@@ -60,7 +60,11 @@ app.controller('filterCtrl', ['$scope', '$location', function($scope, $location)
         $scope.filterlist.push({
             selected: $scope.filters[0]
         });
-    }
+    };
+
+    $scope.remove = function(index) {
+        $scope.filterlist.splice(index, 1);
+    };
 
     var parseLocation = function(location) {
         var pairs = location.substring(1).split("&");
@@ -85,7 +89,7 @@ app.controller('filterCtrl', ['$scope', '$location', function($scope, $location)
         for (var filter in params) {
             if (params.hasOwnProperty(filter)) {
                 if (filter != "q") {
-                    var info = filter.split("_"); 
+                    var info = filter.split("_");
                     name = info[0];
                     bound = info[1]
                     if ( !filterdict.hasOwnProperty(name) ) {
@@ -101,7 +105,7 @@ app.controller('filterCtrl', ['$scope', '$location', function($scope, $location)
                 filter['min'] = filterdict[filter.name]['min'];
                 filter['max'] = filterdict[filter.name]['max'];
                 $scope.filterlist.push({
-                    selected: filter 
+                    selected: filter
                 })
             }
         }

@@ -52,10 +52,14 @@ public class XMLParser extends Parser {
         JSONObject[] tableList = getTableList(doc);
         JSONObject[] docList = new JSONObject[tableList.length];
         for (int i = 0; i < tableList.length; i++) {
-            tableList[i].putAll(articleInfo);
-            tableList[i].put("path", path.toString());
             docList[i] = new JSONObject();
-            docList[i].put("path", path.toString());
+            tableList[i].putAll(articleInfo);
+            if (tableList[i].containsKey("path")) {
+                docList[i].put("path", tableList[i].get("path"));
+            } else {
+                tableList[i].put("path", path.toString());
+                docList[i].put("path", path.toString());
+            }
             docList[i].put("source", tableList[i].toJSONString());
             docList[i].put("type", "table");
             docList[i].put("id", String.valueOf(id++));
@@ -276,28 +280,30 @@ public class XMLParser extends Parser {
             articleInfo.put("link", link.item(0).getTextContent());
         }
 
-//        // arXiv specific info
-//        Set<String> domainSet = new HashSet<String>();
-//        JSONArray subdomainAry = new JSONArray();
-//        NodeList domainList = doc.getElementsByTagName("domain");
-//        for (int i = 0; i < domainList.getLength(); i++) {
-//            Node domain = domainList.item(i);
-//            Element domainElm = (Element) domain;
-//            NodeList subList = domainElm.getElementsByTagName("subdomain");
-//            if (subList.getLength() != 0) {
-//                Node subdomain = subList.item(0);
-//                domain.removeChild(subdomain);
-//                subdomainAry.add(String.format("%s - %s",
-//                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
-//            }
-//            domainSet.add(domain.getTextContent().trim());
-//        }
-//        JSONArray domainAry = new JSONArray();
-//        for (String domain : domainSet) {
-//            domainAry.add(domain);
-//        }
-//        articleInfo.put("domains", domainAry);
-//        articleInfo.put("subdomains", subdomainAry);
+        // arXiv specific info
+        String pathAsId = link.item(0).getTextContent().substring(21);
+        articleInfo.put("path", pathAsId);
+        Set<String> domainSet = new HashSet<String>();
+        JSONArray subdomainAry = new JSONArray();
+        NodeList domainList = doc.getElementsByTagName("domain");
+        for (int i = 0; i < domainList.getLength(); i++) {
+            Node domain = domainList.item(i);
+            Element domainElm = (Element) domain;
+            NodeList subList = domainElm.getElementsByTagName("subdomain");
+            if (subList.getLength() != 0) {
+                Node subdomain = subList.item(0);
+                domain.removeChild(subdomain);
+                subdomainAry.add(String.format("%s - %s",
+                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
+            }
+            domainSet.add(domain.getTextContent().trim());
+        }
+        JSONArray domainAry = new JSONArray();
+        for (String domain : domainSet) {
+            domainAry.add(domain);
+        }
+        articleInfo.put("domains", domainAry);
+        articleInfo.put("subdomains", subdomainAry);
 
         return articleInfo;
     }

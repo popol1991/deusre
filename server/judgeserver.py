@@ -1,4 +1,5 @@
 import pickle
+import json
 from datetime import datetime
 from merge import interleave
 from es import ES
@@ -6,8 +7,6 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask.ext.login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 
 ACCOUNT_FILE = ".account"
-DEFAULT_INDEX  = 'neuroelectro'
-DEFAULT_FILTERS = None
 JUDGE_INDEX    = 'judge'
 DEFAULT_SIZE   = 50
 BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1], # neuron
@@ -21,15 +20,20 @@ app.config["SECRET_KEY"] = "BLAHBLAHBLAH"
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-with open('config.txt') as fin:
-    server = fin.readline().strip()
-es = ES(server)
-
-def build_app(index, domain):
+DEFAULT_INDEX = None
+DEFAULT_FILTERS = None
+es = None
+def build_app(config_path):
     global DEFAULT_INDEX
     global DEFAULT_FILTERS
-    DEFAULT_INDEX = index
-    DEFAULT_FILTERS = [domain]
+    global es
+    config = json.load(open(config_path))
+    es = ES(config['es_server'])
+    DEFAULT_INDEX = config['index']
+    if 'filter' in config:
+        DEFAULT_FILTERS = [config['filter']]
+    else:
+        DEFAULT_FILTERS = None
     return app
 
 class User(UserMixin):
@@ -112,8 +116,9 @@ def logout():
 
 def judge_body(judge):
     return {
+        "user" : current_user.id,
         "judge" : judge,
-        "data" : "neuron",
+        "data" : DEFAULT_INDEX,
         "timestamp" : datetime.utcnow()
     }
 
@@ -122,7 +127,7 @@ def judge_body(judge):
 def result():
     params = request.form
     if len(params) != 1:
-        pass #TODO: something is wrong with the posted data
+        return "error" #TODO: something is wrong with the posted data
     judge = params.keys()[0]
     print judge
     body = judge_body(judge)

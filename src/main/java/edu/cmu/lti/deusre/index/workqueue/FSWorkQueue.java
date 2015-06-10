@@ -47,7 +47,10 @@ public class FSWorkQueue extends WorkQueue {
     @Override
     public JSONObject[] next() {
         JSONObject[] ret = null;
-        ret = parser.parse(next);
-        return ret;
+        try {
+            ret = parser.parse(next);
+        } finally {
+            return ret;
+        }
     }
 }

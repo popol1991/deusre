@@ -126,7 +126,7 @@ form {
     float: left;
     height: 100%;
     width: 800px;
-    padding-top: 60px;
+    padding-top: 90px;
     padding-bottom: 30px;
     white-space: normal;
 }
@@ -358,6 +358,10 @@ th.result_table {
 .search-domain:active {
     color: #ed4877;
     background: #fff;
+}
+.domains {
+    position: absolute;
+    top: 100px;
 }
 
 .subdomain {

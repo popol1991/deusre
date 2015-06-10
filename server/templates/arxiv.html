@@ -32,6 +32,9 @@
             var res = $(".addbtn");
             var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
             res.css("top", newtop);
+            var res = $(".domains");
+            var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
+            res.css("top", newtop);
         };
         function moveResult() {
             var res = $(".results-container");
@@ -67,6 +70,19 @@
     <button class="addfilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button>
 </header>
 
+<!--<div class="side-bar" data-ng-controller='sideBar'>-->
+<div class="domains" data-ng-controller='sideBar'>
+    <select id="domain" name="domain" class="search-domain" ng-change="update_subdomain()" ng-model=selected_domain required ng-options="item as item.label for item in domainlist track by item.value">
+    </select>
+    <div class="subdomain">
+    <ui-select multiple ng-model="multipleDemo.colors" theme="select2" ng-disabled="disabled">
+    <ui-select-match placeholder="Select subdomains...">{[$item]}</ui-select-match>
+    <ui-select-choices repeat="color in subdomains | filter:$select.search">
+      {[color]}
+    </ui-select-choices>
+  </ui-select>
+  </div>
+</div>
 
 <!-- Listing of search results -->
 <main class="results-container">
@@ -124,19 +140,6 @@
   </section>
 </main>
 
-<div class="side-bar" data-ng-controller='sideBar'>
-    <select id="domain" name="domain" class="search-domain" ng-change="update_subdomain()" ng-model=selected_domain required ng-options="item as item.label for item in domainlist track by item.value">
-    </select>
-    <br>
-    <div class="subdomain">
-    <ui-select multiple ng-model="multipleDemo.colors" theme="select2" ng-disabled="disabled">
-    <ui-select-match placeholder="Select subdomains...">{[$item]}</ui-select-match>
-    <ui-select-choices repeat="color in subdomains | filter:$select.search">
-      {[color]}
-    </ui-select-choices>
-  </ui-select>
-  </div>
-</div>
 
 <script>
     $("#header").submit(function(event) {

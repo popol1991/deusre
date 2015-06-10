@@ -43,9 +43,8 @@ app.wsgi_app = SharedDataMiddleware(app.wsgi_app,
 
 es = None
 logistic = Logistic(WEIGHT)
-with open('config.txt') as fin:
-    server = fin.readline().strip()
-es = ES(server)
+config = json.load(open('config.json'))
+es = ES(config['es_server'])
 
 @app.route('/')
 def index():

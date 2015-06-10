@@ -8,6 +8,7 @@
             </select></td>
             <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min" value="{[ filter.selected.min ]}" placeholder="From:"/></td>
             <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max" value="{[ filter.selected.max ]}" placeholder="To:"/></td>
+            <td style="border:none"><button class="addFilter" type="button" ng-click="remove($index)">Remove</button></td>
 		</tr>
         <!--{% for filter in filterlist %}-->
         <!--<tr class="filter_item">-->
