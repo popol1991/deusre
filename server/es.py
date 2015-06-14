@@ -150,7 +150,8 @@ class ES():
             body = {
                 "query" : {
                     "filtered" : dict(query=body['query'], filter=filter_query)
-                }
+                },
+                "size" : size
             }
         if highlight:
             body['highlight'] = {
