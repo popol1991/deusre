@@ -22,4 +22,5 @@ if __name__ == "__main__":
         prel = judge['prel']
 
         for docid, rel in prel.items():
-            print "{0} Q0 {1} {2}".format(qid, docid, rel)
+            if rel != '0':
+                print "{0} Q0 {1} {2}".format(qid, docid, int(rel) - 1)
