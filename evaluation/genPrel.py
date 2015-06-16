@@ -20,6 +20,7 @@ if __name__ == "__main__":
     for qid in xrange(len(hits)):
         judge = json.loads(hits[qid]['_source']['judge'])
         prel = judge['prel']
+        query = judge['query']
 
         for docid, rel in prel.items():
             if rel != '0':

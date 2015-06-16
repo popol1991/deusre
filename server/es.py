@@ -261,6 +261,7 @@ class ESResponse():
                 hit['score'] = score
                 filtered.append((hit, score))
             else:
+                hit['score'] = 0
                 tail.append((hit, 0))
         filtered += tail
         return filtered

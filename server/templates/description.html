@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Assessing Instructions</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../server/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #eeeeee;
+            max-width: 860px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .main {
+            margin: 20px 20px 0 20px;
+            padding: 10px 10px 10px 10px;
+            background: white;
+        }
+    </style>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body style="padding:0 20px 0 20px">
+
+    <div class="main">
+    <center style="font-size: 24px; margin-top: 10px;"><b>Assessing Instruction - Task Description</b></center>
+    <p>
+    Your task is to evaluate the quality of results returned by a new search engine.  The search engine contains about thirty thousand tables extracted from <a href="http://www.neuroelectro.org/">NeuroElectro.org</a> and journals published by <a href="http://www.elsevier.com/">Elsevier</a>. NeuroElectro provided curated versions of tables published in a variety of sources. The Elsevier tables were published in Elsevier neuroscience journals. 
+    </p>
+
+    <p>
+        Your task consists of two parts:  (i) Enter a query, and (ii) Assess the quality of	each table that is returned.
+    </p>
+
+    <p style="margin-top: 30px;">
+        <b style="font-size: 18px;">1. Entering Queries</b> <br />
+	Queries consist of words and optional filters.  A few example queries are shown below.
+    </p>
+
+    <style type="text/css">
+        td { padding:0 15px 0 15px; vertical-align: top; text-align: left; }
+        th { padding:0 15px 0 15px; vertical-align: top; text-align: left; }
+    </style>
+    <table>
+        <tr>
+            <th>Query</th>
+            <th>Filters</th> 
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td> occipital cortex </td>
+            <td> </td>
+            <td> A typical unstructured query</td>
+        </tr>
+        <tr>
+            <td> occipital cortex</td>
+            <td> Value: 10, 50</td>
+            <td> Prefer columns that contain values between 10 and 50.</td>
+        </tr>
+        <tr>
+            <td> occipital cortex</td>
+            <td> Value:  10, 50; Error: 0, 2 </td>
+            <td> Also prefer columns that contain error values between 0 and 2.</td>
+        </tr>
+    </table>
+
+    <p>
+        Numerical filters can be added by clicking the <i>Add Filter</i> button.  There are
+	11 filters.
+	<i>Value</i>, <i>Error</i>, <i>Magnitude</i>, and <i>p-value</i> apply to values of cells.
+	<i>Integer-Ratio</i>, <i>Real-Ratio</i>, <i>Mean</i>, <i>StdDev</i>, <i>Range</i>,
+	<i>Accuracy</i>, and <i>Magnitude</i> apply to column statistics.
+    </p>
+    <p>
+        Please enter queries about topics that you know reasonably well.  You are free to use the filters if they seem useful, or ignore them, if they do not.
+    </p>
+
+    <p style="margin-top: 30px;">
+    <b style="font-size: 18px;">2. Performing Quality Assessments</b> <br />
+	<b>The most important part of the task</b> is your assessment of the quality of each
+	table returned by the search engine.  Your assessments will be used to guide further
+	development of the search engine, so it is important that they are as consistent and
+	unbiased as possible.
+    </p>
+    <p>
+        To save screen space, the search engine only shows a few of top rows for
+	each table.  To show the complete table, click the blue link on the upper right of
+	each table.  Click on the same link to hide an expanded table.
+    </p>
+    <p>
+        To avoid causing bias about which results are best, <b>search results are shown in
+	a random order on the results page.</b>  This may feel awkward to you.  Most people are unconsciously
+	accustomed to the relevance-based ranking used by commercial search engines, in
+	which the best results are shown first.  Please try to remember that these results
+	are in a random order.  <b>The best results may be located anywhere on the page.</b>
+        Because results are shown in a random order, it may be a little difficult 
+	to quickly get a sense of what the search engine found.  When the results are
+	returned, please examine the first 5 tables to get a sense of what the search engine found,
+	before you begin labeling tables.  This may help you to label tables more consistently.
+    </p>
+    <p>
+        Please assign one of the following labels to each table.
+    </p>
+    <ul>
+        <li><b>Key Result:</b> This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine.</li>
+        <li><b>Highly Relevant:</b> The content of this table provides substantial information on the topic.</li>
+        <li><b>Relevant:</b> The content of this table provides some useful information on the topic, although it may be minimal.</li>
+        <li><b>Not Relevant:</b> The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query.</li>
+        <li><b>Broken:</b> This table is difficult to judge because it is broken or not readable.</li>
+    </ul>
+    <p>
+        After examining a table, please click one of the relevance labels.  When you have assessed all
+        of the tables returned for the query, please click the <i>SAVE</i> button at the bottom of
+	the page to save your assessments.
+    </p>
+
+    <p style="margin-top: 30px;">
+        <b style="font-size: 18px;">3. Number of Queries</b> <br />
+        We need as many queries and assessments as you are willing to provide. When you submit a query, please assess all of the results returned by the search engine.  You may stop at any time without consequences to yourself or our research.  <b>Be sure to save the results before you stop. </b>
+    </p>
+
+    <center style="font-size: 20px; margin-top: 10px;"><b><a href="http://boston.lti.cs.cmu.edu:8081/deusre/judge">Next: The Informed Consent Page</a></b></center>
+    </div>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>
