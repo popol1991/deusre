@@ -3,6 +3,10 @@ from es import ESResponse
 
 MAX_POOL_SIZE = 50
 
+def getpid(docid):
+    pid = ".".join(docid.split('.')[:-1])
+    return pid
+
 def interleave(ranklist, filters):
     reranked = []
     for rank in ranklist:
@@ -30,8 +34,22 @@ def interleave(ranklist, filters):
         if all_empty or len(merged) == MAX_POOL_SIZE:
             break
 
-    shuffle(merged)
-    for i in range(len(merged)):
+    piddict = {}
+    for doc in merged:
+        pid = getpid(doc['_id'])
+        if not pid in piddict:
+            piddict[pid] = []
+        piddict[pid].append(doc)
+    keylist = piddict.keys()
+    shuffle(keylist)
+    rank_to_render = []
+    for key in keylist:
+        for doc in piddict[key]:
+            rank_to_render.append(doc)
+    #shuffle(merged)
+
+    for i in xrange(len(merged)):
         merged[i]['id'] = i
 
-    return merged
+    #return merged
+    return rank_to_render
