@@ -107,7 +107,6 @@ def survey():
             user = User.get(current_user.id)
             print user
             if user[2]:
-                User.first_time_login(current_user.id)
                 return render_template("survey.html")
             else:
                 return redirect(url_for("judge"))
@@ -115,6 +114,7 @@ def survey():
             return redirect(url_for("login"))
     elif request.method == 'POST':
         pass
+        User.first_time_login(current_user.id)
         return redirect(url_for("judge"))
 
 @app.route('/deusre/judge/login', methods=['GET', 'POST'])
