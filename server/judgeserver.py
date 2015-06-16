@@ -8,7 +8,7 @@ from flask.ext.login import LoginManager, UserMixin, login_required, login_user,
 
 ACCOUNT_FILE = ".account"
 JUDGE_INDEX    = 'judge'
-DEFAULT_SIZE   = 50
+DEFAULT_SIZE   = 30
 BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1], # neuron
                  [1, 1, 2, 5, 5, 1]] # property
 CELL_FEATURE   = ["magnitude", "mainValue", "precision", "pvalue"]
@@ -38,8 +38,8 @@ def build_app(config_path):
 
 class User(UserMixin):
     # proxy for a database of users
-    user_database = {"demo" : ("demo", "demo"),
-                     "kyle": ("kyle", "kyle")}
+    user_database = {"demo" : ("demo", "demo", False),
+                     "kyle": ("kyle", "kyle", False)}
     empty = True
     with open(ACCOUNT_FILE) as fin:
         users = {}
@@ -66,7 +66,14 @@ class User(UserMixin):
 
     @classmethod
     def create_user(cls, id, password):
-        cls.user_database[id] = (id, password)
+        cls.user_database[id] = (id, password, True)
+        with open(ACCOUNT_FILE, "w") as fout:
+            pickle.dump(cls.user_database, fout)
+
+    @classmethod
+    def first_time_login(cls, id):
+        user = cls.user_database[id]
+        cls.user_database[id] = (id, user[1], False)
         with open(ACCOUNT_FILE, "w") as fout:
             pickle.dump(cls.user_database, fout)
 
@@ -92,6 +99,24 @@ def signup():
         User.create_user(userid, password)
         return "success"
 
+@app.route('/deusre/judge/survey', methods=['GET','POST'])
+def survey():
+    if request.method == 'GET':
+        try:
+            print current_user.id
+            user = User.get(current_user.id)
+            print user
+            if user[2]:
+                User.first_time_login(current_user.id)
+                return render_template("survey.html")
+            else:
+                return redirect(url_for("judge"))
+        except:
+            return redirect(url_for("login"))
+    elif request.method == 'POST':
+        pass
+        return redirect(url_for("judge"))
+
 @app.route('/deusre/judge/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -106,7 +131,7 @@ def login():
     if user:
         if user[1] == password:
             login_user(User(userid, password))
-            return redirect("http://boston.lti.cs.cmu.edu/eager/deusre/about/judgescale.html")
+            return redirect("http://boston.lti.cs.cmu.edu/eager/deusre/about/entry.html")
     return render_template("login.html")
 
 @app.route('/deusre/judge/logout')
@@ -175,4 +200,5 @@ def judge():
     return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist)
 
 if __name__ == "__main__":
+    build_app("./config-arxiv.json")
     app.run(host="0.0.0.0", port=8081, debug=True)
