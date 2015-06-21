@@ -66,6 +66,10 @@ form {
   border: 4px solid #2e6da4;
 }
 
+form#filter-form {
+    margin-left: 145px;
+}
+
 /* Search Box Placeholder text */
 ::-webkit-input-placeholder {
    color: #999999;
