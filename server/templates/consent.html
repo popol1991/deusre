@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Assessing Instructions</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="/static/js/jquery.min.js"></script>
+    <style>
+        body {
+            background: #eeeeee;
+            max-width: 860px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .main {
+            margin: 20px 20px 0 20px;
+            padding: 10px 10px 10px 10px;
+            background: white;
+        }
+    </style>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body style="padding:0 20px 0 20px">
+
+    <div class="main">
+    <center style="font-size: 24px; margin-top: 10px;"><b>Assessing Instruction - Informed Consent</b></center>
+    <p>
+This assessment task is part of a research study conducted by Professor Jamie Callan at Carnegie Mellon University and is funded by the National Science Foundation.
+<br>
+The purpose of the research is to make it easier for scientists and researchers to search scientific data in tabular form.
+    </p>
+
+    <p>
+    <b style="font-size: 18px;">Participant Requirements</b> <br />
+    Participation in this study is limited to individuals age 18 and older, and to people with research or scientific experience in electrophysiology or neuroscience.
+    </p>
+
+    <p>
+    <b style="font-size: 18px;">Risks</b> <br />
+The risks and discomfort associated with participation in this study are no greater than those ordinarily encountered in daily life or during other online activities.  
+    </p>
+
+    <p>
+    <b style="font-size: 18px;">Benefits</b> <br />
+There may be no personal benefit from your participation in the study but the knowledge received may be of value to humanity.  
+    </p>
+
+    <p>
+    <b style="font-size: 18px;">Compensation & Costs</b> <br />
+You are being paid an hourly wage based on the amount of time that you spend on this task.  There will be no cost to you if you participate in this study.  
+    </p>
+
+    <p>
+    <b style="font-size: 18px;">Confidentiality</b> <br />
+The data captured for the research does not include any personally identifiable information about you.  Your IP address will not be captured.
+    </p>
+
+    <p>
+    <b style="font-size: 18px;">Right to Ask Questions & Contact Information</b> <br />
+    If you have any questions about this study, you should feel free to ask them by contacting the Principal Investigator.
+    <br>
+    <address>
+    Jamie Callan<br>
+    Carnegie Mellon University <br>
+    5000 Forbes Avenue <br>
+    Gates Hillman Complex 5407, LTI <br>
+    Pittsburgh, PA 15213<br>
+    Phone:  +1 412-268-4525<br>
+    Email:  <a href="mailto:callan@cs.cmu.edu">callan@cs.cmu.edu</a>
+    </address>
+    <br>
+    If you have questions later, desire additional information, or wish to withdraw your participation please contact the Principal Investigator by mail, phone or e-mail in accordance with the contact information listed above.  
+    <br>
+    If you have questions pertaining to your rights as a research participant; or to report objections to this study, you should contact the Office of Research integrity and Compliance at Carnegie Mellon University.  Email: irb-review@andrew.cmu.edu . Phone: 412-268-1901 or 412-268-5460.
+    </p>
+
+    <p>
+    <b style="font-size: 18px;">Voluntary Participation</b> <br />
+    Your participation in this research is voluntary.  You may discontinue participation at any time during the research activity.  
+    <ul>
+        <li>I am age 18 or older. Yes <input type="radio" name="check_1" value="yes"> No <input type="radio" name="check_1" value="no"> <br><span style="color:blue">
+        <li>I have research or scientific experience in electrophysiology or neuroscience.  Yes <input type="radio" name="check_2" value="yes"> No <input type="radio" name="check_2" value="no"><br><span style="color:blue">
+        <li>I have read and understand the information above. Yes <input type="radio" name="check_3" value="yes"> No <input type="radio" name="check_3" value="no"> <br><span style="color:blue">
+        <li>I want to participate in this research and continue with the assessment task. Yes <input type="radio" name="check_4" value="yes"> No <input type="radio" name="check_4" value="no"> <br><span style="color:blue">
+    </p> 
+
+    <center style="font-size: 20px; margin-top: 10px;"><b><a href="#" onclick="check()">Goto the system</a></b></center>
+    </div>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
+    <script>
+        function check() {
+            var i = 1;
+            for (; i <= 4; i++) {
+                var check = $("input[name=check_" + i + "]:checked").val();
+                if (typeof check == 'undefined' || check == 'no') {
+                    alert("You are not qualified for this task, please review the answers.");
+                    return;
+                }
+            }
+            window.location.href = "http://boston.lti.cs.cmu.edu:8081/deusre/judge/survey";
+        }
+    </script>
+  </body>
+</html>
