@@ -99,6 +99,17 @@ def signup():
         User.create_user(userid, password)
         return "success"
 
+@app.route('/deusre/judge/consent', methods=['GET'])
+def consent():
+        try:
+            user = User.get(current_user.id)
+            if user[2]:
+                return render_template("consent.html")
+            else:
+                return redirect(url_for("survey"))
+        except:
+            return redirect(url_for("login"))
+
 @app.route('/deusre/judge/survey', methods=['GET','POST'])
 def survey():
     if request.method == 'GET':

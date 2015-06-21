@@ -54,7 +54,7 @@ def index():
 @app.route("/deusre/api/<path:path>")
 def route(path):
     #: pass all request to elasticsearch server
-    target = "http://compute-1-33:9200/" + path
+    target = "http://compute-1-10:9200/" + path
     data = request.get_data()
     res = make_response(requests.get(target, data=data, params=request.args).content)
     return res
