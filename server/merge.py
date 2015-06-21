@@ -12,13 +12,6 @@ def interleave(ranklist, filters):
     for rank in ranklist:
         reranked.append(ESResponse(rank).rerank(filters))
 
-    # How many overlap do the 4 ranks have
-    #v = set()
-    #for rank in reranked:
-        #for table in rank:
-            #v.add(table['_id'])
-    #print len(v)
-
     merged = []
     visited_id = set()
     while True:

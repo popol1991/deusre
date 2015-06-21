@@ -20,11 +20,33 @@
    <!-- Title and search box -->
    <header class="jumbotron">
      <h1 class="neuro-title"><a href="/deusre/judge">Neuroscience<br>Table Search</a></h1>
-     {% include 'header.html' %}
+      <div class="search-box-container">
+          <form id='query' data-parsley-validate action="./submit" method="get" autocomplete="off" onsubmit="submitForms()">
+            <input type="submit" class="search-button" value="Search">
+            <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
+          </form>
+      </div>
      <div class="info">
        <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/neuroelectro.html"><center>About the dataset</center></a>
        <a class="instruction" href="http://boston.lti.cs.cmu.edu/eager/deusre/about/judgescale.html">Instruction</a>
      </div>
+        <form id='filter-form' data-parley-validate data-ng-controller='filterCtrl'>
+            <table class="filter">
+            <tr class="filter_item" ng-repeat="filter in filterlist">
+                <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
+                </select></td>
+                <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min" value="{[ filter.selected.min ]}" placeholder="From:"/></td>
+                <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max" value="{[ filter.selected.max ]}" placeholder="To:"/></td>
+                <td style="border:none"><button class="addFilter" type="button" ng-click="remove($index)">Remove</button></td>
+            </tr>
+            <tr>
+                <td style="border:none;">Filter:</td>
+                <td class="dummy"><input disabled/></td>
+                <td class="dummy"><input disabled/></td>
+                <td style="border:none;"><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>
+            </tr>
+            </table>
+        </form>
      <a class="logout" href="judge/logout">Log out</a>
    </header>
 
@@ -65,9 +87,10 @@
    </main>
 
    <script>
-       function removeFilter() {
-           alert("id");
-       };
+      function submitForms() {
+          alert("submit");
+          $('#filter-form :input').not(':submit').clone().hide().appendTo('#query');
+      };
       function save(next) {
           var i = 0;
           var reldict = {};
