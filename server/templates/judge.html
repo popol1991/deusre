@@ -5,13 +5,21 @@
    <script src='/static/js/jquery.tooltipster.min.js'></script>
    <link rel='stylesheet' href='/static/css/judge.css'>
    <link rel='stylesheet' href='/static/css/tooltipster.css'>
-   <script>
-    $(document).ready(function() {
-        $('.tooltip').tooltipster({
-            content: $('<style>td {padding: 2px 2px 2px 5px;} table {margin-top: 8px;}</style><center><b>Scales for Relevance Judgements</b><center><table style="font-size:14px;"><col width="135px"><tr><td style="vertical-align:middle;">Key Result:</td><td>This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine,</td></tr><tr><td style="vertical-align:middle;">Highly Relevant:</td><td>The content of this table provides substantial information on the topic,</td></tr><tr><td style="vertical-align:middle;">Relevant:</td><td>The content of this table provides some information on the topic, which may be minimal,</td></tr><tr><td style="vertical-align:middle;">Not Relevant:</td><td>The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query,</td></tr><tr><td style="vertical-align:middle;">Broken:</td><td>This table is broken or not readable.</td></tr><table>'),
-            theme: 'my-custom-theme'
-        });
-    });
+   <script type="text/javascript">
+       function reminder() {
+           return "You have unsaved results.";
+       };
+       $(document).ready(function() {
+           $('.tooltip').tooltipster({
+               content: $('<style>td {padding: 2px 2px 2px 5px;} table {margin-top: 8px;}</style><center><b>Scales for Relevance Judgements</b><center><table style="font-size:14px;"><col width="135px"><tr><td style="vertical-align:middle;">Key Result:</td><td>This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine,</td></tr><tr><td style="vertical-align:middle;">Highly Relevant:</td><td>The content of this table provides substantial information on the topic,</td></tr><tr><td style="vertical-align:middle;">Relevant:</td><td>The content of this table provides some information on the topic, which may be minimal,</td></tr><tr><td style="vertical-align:middle;">Not Relevant:</td><td>The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query,</td></tr><tr><td style="vertical-align:middle;">Broken:</td><td>This table is broken or not readable.</td></tr><table>'),
+               theme: 'my-custom-theme'
+           });
+           var url = window.location.pathname;
+           if (url.endsWith("submit")) {
+               window.onbeforeunload = reminder;
+               window.onunload = reminder;
+           }
+       });
    </script>
 </head>
 
@@ -68,11 +76,11 @@
             <!-- Radio button for judgements -->
             <div class="rel-scales">
                 <b>Degree of Relevance: </b>
-                Key Result <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=4>
-                Highly Relevant <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=3>
-                Relevant <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=2>
-                Not Relevant <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=1>
-                Broken <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=0>
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=4>Key Result
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=3>Highly Relevant 
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=2>Relevant 
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=1>Not Relevant 
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=0>Broken 
                 <image class="tooltip rel-mark" src="/static/image/question.jpg" />
                 <span id="rel_{{hit.id}}" style="display:none">{{hit._id}}</span>
             </div>
@@ -86,7 +94,7 @@
       </section>
    </main>
 
-   <script>
+   <script type="text/javascript">
       function submitForms() {
           $('#filter-form :input').not(':submit').clone().hide().appendTo('#query');
       };
