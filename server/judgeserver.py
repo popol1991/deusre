@@ -216,6 +216,7 @@ def judge():
         res = init_rank.rerank(params)
     else:
         #init_rank = es.text_search(query, 0, DEFAULT_SIZE, index=DEFAULT_INDEX, highlight=False)
+        rank_simple = es.search_with_weight(query, [1]*6, DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS)
         # search with neuron best weight and best_fields type
         rank_neuro_best = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS)
         # search with property best weight and best_fields type
@@ -224,7 +225,7 @@ def judge():
         rank_neuro_cross = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS)
         # search with property best weight and cross_fields type
         rank_prop_cross = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS)
-        ranklist = [rank_neuro_best, rank_prop_best, rank_neuro_cross, rank_prop_cross]
+        ranklist = [rank_simple, rank_neuro_best, rank_prop_best, rank_neuro_cross, rank_prop_cross]
         res = interleave(ranklist, params)
 
     filterlist = get_filter_list(params)
