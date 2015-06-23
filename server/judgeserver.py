@@ -81,6 +81,8 @@ class User(UserMixin):
 @login_manager.user_loader
 def load_user(userid):
     user = User.get(userid)
+    if user is None:
+        return None
     return User(user[0], user[1])
 
 @login_manager.unauthorized_handler
