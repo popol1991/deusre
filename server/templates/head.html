@@ -13,7 +13,12 @@
    };
    function addfilter() {
        var res = $(".results-container");
-       var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 25) + "px";
+       var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 30) + "px";
+       res.css("padding-top", newtop);
+   };
+   function removefilter() {
+       var res = $(".results-container");
+       var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) - 30) + "px";
        res.css("padding-top", newtop);
    };
    $(document).ready(function() {
