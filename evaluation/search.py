@@ -6,6 +6,9 @@ import json
 from es import ES, ESResponse
 from elasticsearch import Elasticsearch
 
+BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1], # neuron
+                 [1, 1, 2, 5, 5, 1]] # property
+
 def build_params(query):
     params = dict()
     for p in query:
@@ -29,7 +32,6 @@ if __name__ == "__main__":
 
     for qid in xrange(len(hits)):
         judge = json.loads(hits[qid]['_source']['judge'])
-        # TODO: only text query now
         query = judge['query']
         params = build_params(query)
         print >> sys.stderr, params
@@ -39,7 +41,7 @@ if __name__ == "__main__":
             highlight = True
         q = query[0]['value']
 
-        rank = es.search_with_weight(q, [1, 1, 2, 5, 5, 1], 'arxiv', size=50, type="best_fields", filter=["Computer Science"], highlight=highlight)
+        rank = es.search_with_weight(q, [1, 1, 1, 1, 1, 1], 'arxiv', size=50, type="cross_fields", filter=["Computer Science"], highlight=highlight)
         doclist = ESResponse(rank).rerank(params)
 
         for idx in xrange(len(doclist)):

@@ -100,6 +100,10 @@ def signup():
         User.create_user(userid, password)
         return "success"
 
+@app.route('/deusre/judge/description')
+def description():
+    return render_template('description.html')
+
 @app.route('/deusre/judge/consent', methods=['GET'])
 def consent():
         try:
@@ -158,7 +162,7 @@ def login():
     if user:
         if user[1] == password:
             login_user(User(userid, password))
-            return redirect("http://boston.lti.cs.cmu.edu/eager/deusre/about/entry.html")
+            return render_template("entry.html")
     return render_template("login.html")
 
 @app.route('/deusre/judge/logout')
