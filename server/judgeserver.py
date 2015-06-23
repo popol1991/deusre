@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask.ext.login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 
 ACCOUNT_FILE = ".account"
+SURVEY_FILE = ".survey"
 JUDGE_INDEX    = 'judge'
 DEFAULT_SIZE   = 30
 BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1], # neuron
@@ -103,6 +104,7 @@ def signup():
 def consent():
         try:
             user = User.get(current_user.id)
+            print user
             if user[2]:
                 return render_template("consent.html")
             else:
@@ -124,7 +126,21 @@ def survey():
         except:
             return redirect(url_for("login"))
     elif request.method == 'POST':
-        pass
+        # save survey result
+        empty = True
+        survey_dict = {}
+        with open(SURVEY_FILE) as fin:
+            content = "\n".join(fin.readlines())
+            if len(content) != 0:
+                empty = False
+        if not empty:
+            fin = open(SURVEY_FILE)
+            survey_dict = pickle.load(fin)
+            fin.close()
+        survey_dict[current_user.get_id()] = request.form
+        with open(SURVEY_FILE, "w") as fout:
+            pickle.dump(survey_dict, fout)
+
         User.first_time_login(current_user.id)
         return redirect(url_for("judge"))
 
