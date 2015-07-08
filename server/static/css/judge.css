@@ -14,7 +14,7 @@
 .logout {
     position: absolute;
     top: 60px;
-    left: 540px;
+    left: 637px;
 }
 .rel-scales {
     margin-top: 5px;
@@ -43,7 +43,7 @@ table.meta {
 }
 .save-button {
     width: 100%;
-    max-width: 400px;
+    max-width: 390px;
     height: 60px;
     cursor: pointer;
     font-size: 27px;
