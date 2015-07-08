@@ -154,11 +154,10 @@ def survey():
 @app.route('/deusre/judge/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
-        if current_user.get_id() is None:
+        if current_user.get_id() is None or User.get(current_user.id)[2]:
             return render_template("login.html")
         else:
-            return render_template("entry.html")
-            #return redirect(url_for('judge'))
+            return redirect(url_for('judge'))
     # login
     userid = request.form['username']
     password = request.form['password']
@@ -209,6 +208,10 @@ def get_filter_list(params):
 @app.route("/deusre/submit", methods=["GET"])
 @login_required
 def judge():
+    userid = current_user.id
+    if User.get(userid)[2]:
+        return redirect(url_for('login'))
+
     params = request.args
     if len(params) == 0:
         return render_template("judge.html", hits=[], len=0, params=None)
