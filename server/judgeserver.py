@@ -1,5 +1,6 @@
 import pickle
 import json
+from subprocess import check_output
 from datetime import datetime
 from merge import interleave
 from es import ES
@@ -233,6 +234,17 @@ def judge():
 
     return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist)
 
+@app.route("/deusre/mlt", methods=["GET"])
+def mlt():
+    params = request.args
+    query = params['q']
+    path = params['path']
+    out = check_output(["java", "-cp", "/Users/Kyle/IdeaProjects/mlt/lib/table2query.jar:/Users/Kyle/IdeaProjects/mlt/lib/stanford-corenlp-full-2015-04-20/stanford-corenlp-3.5.2.jar:/Users/Kyle/IdeaProjects/mlt/lib/stanford-corenlp-full-2015-04-20/stanford-corenlp-3.5.2-models.jar:/Users/Kyle/IdeaProjects/mlt/lib/", "MoreLikeThis", query, path])
+    print out
+    result = es.search_with_term_weight(out, DEFAULT_INDEX, filter=DEFAULT_FILTERS)
+    result = result.rerank(params)
+    return render_template('judge.html', hits=result, len=len(result), params=params, filterlist=[])
+
 if __name__ == "__main__":
-    build_app("./config-arxiv.json")
+    build_app("./config-neuron.json")
     app.run(host="0.0.0.0", port=8081, debug=True)
