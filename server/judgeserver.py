@@ -40,7 +40,7 @@ def build_app(config_path):
 
 class User(UserMixin):
     # proxy for a database of users
-    user_database = {"demo" : ("demo", "demo", False),
+    user_database = {"demo" : ("demo", "demo", True),
                      "kyle": ("kyle", "kyle", False)}
     empty = True
     with open(ACCOUNT_FILE) as fin:
@@ -157,7 +157,8 @@ def login():
         if current_user.get_id() is None:
             return render_template("login.html")
         else:
-            return redirect(url_for('judge'))
+            return render_template("entry.html")
+            #return redirect(url_for('judge'))
     # login
     userid = request.form['username']
     password = request.form['password']
