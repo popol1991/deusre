@@ -98,13 +98,28 @@ class ES():
         res = self.es.search(index=index, body=query)
         return ESResponse(res, match_all=True)
 
-    def mkbody(self, query, field, highlight=False, type="best_fields", size=10):
+    def mkbody(self, query, field, highlight=False, type="best_fields", size=10, operator="or"):
         # prepare body
         qry = {
-            "multi_match": {
-                "query": query,
-                "fields": field,
-                "type": type
+            "bool" : {
+                "should" : [
+                    {
+                        "multi_match": {
+                            "query": query,
+                            "fields": field,
+                            "type": type,
+                            "operator": "and",
+                        },
+                    },
+                    {
+                        "multi_match": {
+                            "query": query,
+                            "fields": field,
+                            "type": type,
+                            "operator": "or"
+                        }
+                    }
+                ]
             }
         }
         body = {
@@ -142,9 +157,9 @@ class ES():
                             break
         return [w for w in nummatched]
 
-    def search_with_weight(self, query, weight, index, size, doc_type='table', type="best_fields", highlight=True, filter=None):
+    def search_with_weight(self, query, weight, index, size, doc_type='table', type="best_fields", highlight=True, filter=None, operator="or"):
         field = ["{0}^{1}".format(NEURO_FIELDS[i], weight[i]) for i in range(len(weight))]
-        body = self.mkbody(query, field, type=type, size=size)
+        body = self.mkbody(query, field, type=type, size=size, operator=operator)
         if filter is not None:
             filter_query = self.mk_filter(filter)
             body = {
@@ -162,6 +177,33 @@ class ES():
             }
         res = self.es.search(index=index, doc_type=doc_type, body=body)
         return res
+
+    def search_with_term_weight(self, weight_str, index, filter):
+        clauses = []
+        terms = weight_str.split('\n')
+        for term in terms:
+            termweight = term.split('\t')
+            term = termweight[0]
+            weights = termweight[1:]
+            weights = [int(100*float(w)) for w in weights]
+            field = ["{0}^{1}".format(NEURO_FIELDS[i], weights[i]) for i in range(len(weights)) if weights[i] != 0]
+            if field:
+                clauses.append({
+                    "multi_match" : {
+                        "query" : term,
+                        "fields" : field
+                    }
+                })
+        query = {
+            "query" : {
+                "bool" : {
+                    "should" : clauses
+                }
+            }
+        }
+        print query
+        res = self.es.search(index=index, doc_type="table", body=query)
+        return ESResponse(res)
 
     def index(self, index, doc_type, body):
         self.es.create(index=index, doc_type=doc_type, body=body)
