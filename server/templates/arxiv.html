@@ -1,88 +1,66 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" ng-app="filter">
+<!DOCTYPE html>
+<html lang='en' ng-app="filter">
 <head>
     <meta charset='utf-8'>
-    <title>arXiv Table Search</title>
+    <title>Scientific Data Search</title>
     <link rel='stylesheet' href='/static/css/reset.css'>
+    <link rel='stylesheet' href='/static/css/index.css'>
+    <link rel='stylesheet' href='/static/css/arxiv.css'>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/parsley.min.js"></script>
     <script src="/static/js/angular.min.js"></script>
-    <script src="/static/js/arxiv.js"></script>
-
-    <!-- For side-bar menu -->
-    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-sanitize.js"></script>
-    <!-- ui-select files -->
-    <script src="/static/js/select.js"></script>
-
-    <!-- Select2 theme -->
-    <link rel='stylesheet' href='/static/css/arxiv.css'>
-    <link rel="stylesheet" href="/static/css/select2.css">
-
-    <link rel="stylesheet" href="/static/css/select.css">
-
+    <script src="/static/js/filter.js"></script>
     <script>
         function toggle(id) {
             $("tbody#"+id).toggle();
         };
-        function moveFilterBtn() {
-            var res = $(".addfilter");
-            var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
-            res.css("top", newtop);
-            var res = $(".addbtn");
-            var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
-            res.css("top", newtop);
-            var res = $(".domains");
-            var newtop = String(parseInt(res.css("top").slice(0,-2)) + 35) + "px";
-            res.css("top", newtop);
-        };
-        function moveResult() {
-            var res = $(".results-container");
-            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 35) + "px";
-            res.css("padding-top", newtop);
-        };
         function addfilter() {
-            moveResult();
-            moveFilterBtn();
+            var res = $(".results-container");
+            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 40) + "px";
+            res.css("padding-top", newtop);
         };
     </script>
 </head>
 
+<body>
 <!-- Title and search box -->
-<header class="jumbotron" data-ng-controller='filterCtrl'>
-  <h1 class="title"><a>Table arXiv</a></h1>
-  <div class="search-box-container">
-      <form id="header" data-parsley-validate action="./">
+<header class="jumbotron">
+     <h1 class="title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">EAGER</a></h1>
+  <div class="search-box-container" data-ng-controller='filterCtrl'>
+      <form id='query' data-parsley-validate action="./submit" method="get" autocomplete="off">
         <input type="submit" class="search-button" value="Search">
         <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
+        <select name="domain" id="domain">
+                <option value="all">All Domains</option>
+                <option value="Physics">Physics</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Quantitative Biology">Quantitative Biology</option>
+                <option value="Statistics">Statistics</option>
+        </select>
+        <select name="subdomain" id="subdomain" disabled>
+        </select>
         <table class="filter">
-		<tr class="filter_item" ng-repeat="filter in filterlist">
-            <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
-            </select></td>
-            <td><input type="text" data-parsley-type="number" name="{[ filter.selected.name ]}_min"/></td>
-            <td><input type="text" data-parsley-type="number" name="{[ filter.selected.name]}_max"/></td>
-		</tr>
+            <tr class="filter_item" ng-repeat="filter in filterlist">
+                <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
+                </select></td>
+                <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min" value="{[ filter.selected.min ]}" placeholder="From:"/></td>
+                <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max" value="{[ filter.selected.max ]}" placeholder="To:"/></td>
+                <td style="border:none"><button class="addFilter" type="button" ng-click="remove($index)">Remove</button></td>
+            </tr>
+            <tr>
+                <td style="border:none;">Filter:</td>
+                <td class="dummy"><input disabled/></td>
+                <td class="dummy"><input disabled/></td>
+                <td style="border:none;"><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>
+            </tr>
 		</table>
     </form>
   </div>
-  <a class="about" href="http://boston.lti.cs.cmu.edu/eager/deusre/about/arxiv.html">About</a>
-    <div id="trapezoid" class="addbtn"></div>
-    <button class="addfilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button>
+    <div class="info">
+        <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/{{dataset}}.html">About the dataset</a>
+    </div>
 </header>
-
-<!--<div class="side-bar" data-ng-controller='sideBar'>-->
-<div class="domains" data-ng-controller='sideBar'>
-    <select id="domain" name="domain" class="search-domain" ng-change="update_subdomain()" ng-model=selected_domain required ng-options="item as item.label for item in domainlist track by item.value">
-    </select>
-    <div class="subdomain">
-    <ui-select multiple ng-model="multipleDemo.colors" theme="select2" ng-disabled="disabled">
-    <ui-select-match placeholder="Select subdomains...">{[$item]}</ui-select-match>
-    <ui-select-choices repeat="color in subdomains | filter:$select.search">
-      {[color]}
-    </ui-select-choices>
-  </ui-select>
-  </div>
-</div>
 
 <!-- Listing of search results -->
 <main class="results-container">
@@ -93,25 +71,15 @@
     {% for hit in hits %}
     <article class='result'>
       <!--<h2>{{ hit.id}}</h2>-->
-      <h2><a href="{{ hit.link }}">{{ hit.caption }}</a></h2>
+      <h2>{{ hit.caption }}</h2>
       <h3>From: {{ hit['article-title']}}</h3>
-      <h3>Subject: {{ hit['subject']}}</h3>
-      <!--<p>{{hit.journal}}, {{hit.issn}}, {{hit.volume}}, {{hit.issue}}, {{hit.page}}, {{hit.date}}</p>-->
-      <!--<p>-->
-          <!--<b>Authors: </b>-->
-          <!--<span>{{ ", ".join(hit.authors) }}</span>-->
-      <!--</p>-->
-      <!--<p>-->
-          <!--<b>Keywords: </b>-->
-          <!--<span>{{ ", ".join(hit.keywords) }}</span>-->
-      <!--</p>-->
       <br>
-      <table class="result_table">
+      <table>
           <thead>
             {% for row in hit.header_rows %}
               <tr>
                 {% for header in row %}
-                  <th class="result_table">
+                  <th>
                     {{ header.value }}
                   </th>
                 {% endfor %}
@@ -124,7 +92,7 @@
               <tr>
                   {% if row %}
                     {% for value in row %}
-                        <td id="cell" class="result_table highlight_{{ value.highlight }}">
+                        <td id="cell" class="highlight_{{ value.highlight }}">
                         {{ value.text }}
                         </td>
                     {% endfor %}
@@ -140,37 +108,7 @@
   </section>
 </main>
 
-
-<script>
-    $("#header").submit(function(event) {
-        event.preventDefault();
-        var headerData = $("#header").serializeArray();
-        var domain = $("#domain").val();
-        var subdomain = new Array();
-        $("#subdomain span").each(function(index) {
-            subdomain.push($(this).text());
-        });
-        var body = {};
-        $.each(headerData, function() {
-            body[this.name] = this.value || '';
-        });
-        body['domain'] = domain;
-        if (subdomain.length != 0) {
-            for (var i = 0; i < subdomain.length; i++) {
-                body['subdomain' + i] = subdomain[i];
-            }
-        };
-        $.post(".", body, function(data) {
-            var main = $('main', '<div>'+data+'</div>');
-            $("main").replaceWith(main);
-            var filterList = $('.filter_item');
-            var filterNum = filterList.length;
-            for (var i=0; i < filterNum; i++) {
-                moveResult();
-            }
-        });
-    });
-</script>
-
+<!-- Load resources -->
+<script src="/static/js/arxiv.js"></script>
 </body>
 </html>
