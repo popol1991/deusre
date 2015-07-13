@@ -1,3 +1,4 @@
+import sys
 import base64
 import os
 import requests
@@ -43,7 +44,7 @@ app.wsgi_app = SharedDataMiddleware(app.wsgi_app,
 
 es = None
 logistic = Logistic(WEIGHT)
-config = json.load(open('config.json'))
+config = json.load(open(sys.argv[1]))
 es = ES(config['es_server'])
 
 @app.route('/')
@@ -150,16 +151,20 @@ def subjects():
         subject = "".join(fin.readlines())
     return subject
 
+@app.route("/deusre/arxiv/submit")
 @app.route("/deusre/arxiv/", methods=['GET', 'POST'])
 def arxiv():
     #: build structured query to elasticsearch
-    params = request.form
+    params = request.args
     if len(params) == 0:
-        return render_template('arxiv.html', hits=[], query="", params={})
+        return render_template('arxiv.html', hits=[], query="", params={}, dataset="elsevier")
     #res = search_local(params, ARXIV_INDEX)
     domainlist = [params[key] for key in params if key.startswith('subdomain')]
-    if len(domainlist) == 0:
-        domainlist = [params['domain']]
+    if len(domainlist) == 0 or domainlist[0] == 'all':
+        if 'domain' in params:
+            domainlist = [params['domain']]
+        else:
+            domainlist.append('all')
     if domainlist[0] == 'all':
         body = es.mk_text_body(params['q'], 0, DEFAULT_SIZE, ARXIV_INDEX, highlight=True)
     else:
@@ -187,7 +192,7 @@ def arxiv():
             hit['subject'] = ", ".join(hit['subdomains'])
         else:
             hit['subject'] = ", ".join(hit['domains'])
-    return render_template('arxiv.html', hits=res, len=len(res), params=params)
+    return render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv")
 
 @app.route("/deusre/search/submit")
 @app.route("/deusre/search/")
@@ -195,12 +200,12 @@ def search():
     #: build structured query to elasticsearch
     params = request.args
     if len(params) == 0:
-        return render_template('search.html', hits=[], query="", params={})
+        return render_template('search.html', hits=[], query="", params={}, dataset="elsevier")
     res = search_local(params, ELSEVIER_INDEX)
     logger.info("Reranking...")
     res = res.rerank(params)
     logger.info("Rendering...")
-    return render_template('search.html', hits=res, len=len(res), params=params)
+    return render_template('search.html', hits=res, len=len(res), params=params, dataset="elsevier")
 
 def merge(hits1, hits2):
     i = 0
