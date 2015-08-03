@@ -1,159 +1,178 @@
-var app = angular.module('filter', ['ngSanitize', 'ui.select']);
+var subjects = {
+    "all": [
+        "Sub-domains"
+    ],
+    "Physics": [
+        "Astrophysics",
+        "Astrophysics - Astrophysics of Galaxies",
+        "Astrophysics - Cosmology and Nongalactic Astrophysics",
+        "Astrophysics - Earth and Planetary Astrophysics",
+        "Astrophysics - High Energy Astrophysical Phenomena",
+        "Astrophysics - Instrumentation and Methods for Astrophysics",
+        "Astrophysics - Solar and Stellar Astrophysics",
+        "Condensed Matter",
+        "Condensed Matter - Disordered Systems and Neural Networks",
+        "Condensed Matter - Materials Science",
+        "Condensed Matter - Mesoscale and Nanoscale Physics",
+        "Condensed Matter - Other Condensed Matter",
+        "Condensed Matter - Quantum Gases",
+        "Condensed Matter - Soft Condensed Matter",
+        "Condensed Matter - Statistical Mechanics",
+        "Condensed Matter - Strongly Correlated Electrons",
+        "Condensed Matter - Superconductivity",
+        "General Relativity and Quantum Cosmology",
+        "High Energy Physics - Experiment",
+        "High Energy Physics - Lattice",
+        "High Energy Physics - Phenomenology",
+        "High Energy Physics - Theory",
+        "Mathematical Physics",
+        "Nonlinear Sciences - Adaptation and Self-Organizing Systems",
+        "Nonlinear Sciences - Cellular Automata and Lattice Gases",
+        "Nonlinear Sciences - Chaotic Dynamics",
+        "Nonlinear Sciences - Exactly Solvable and Integrable Systems",
+        "Nonlinear Sciences - Pattern Formation and Solitons",
+        "Nuclear Experiment",
+        "Nuclear Theory",
+        "Physics - Accelerator Physics",
+        "Physics - Atmospheric and Oceanic Physics",
+        "Physics - Atomic Physics",
+        "Physics - Atomic and Molecular Clusters",
+        "Physics - Biological Physics",
+        "Physics - Chemical Physics",
+        "Physics - Classical Physics",
+        "Physics - Computational Physics",
+        "Physics - Data Analysis, Statistics and Probability",
+        "Physics - Fluid Dynamics",
+        "Physics - General Physics",
+        "Physics - Geophysics",
+        "Physics - History and Philosophy of Physics",
+        "Physics - Instrumentation and Detectors",
+        "Physics - Medical Physics",
+        "Physics - Optics",
+        "Physics - Physics Education",
+        "Physics - Physics and Society",
+        "Physics - Plasma Physics",
+        "Physics - Popular Physics",
+        "Physics - Space Physics",
+        "Quantum Physics"
+    ],
+    "Computer Science" : [
+        "Computer Science - Artificial Intelligence",
+        "Computer Science - Computation and Language",
+        "Computer Science - Computational Complexity",
+        "Computer Science - Computational Engineering, Finance, and Science",
+        "Computer Science - Computational Geometry",
+        "Computer Science - Computer Science and Game Theory",
+        "Computer Science - Computer Vision and Pattern Recognition",
+        "Computer Science - Computers and Society",
+        "Computer Science - Cryptography and Security",
+        "Computer Science - Data Structures and Algorithms",
+        "Computer Science - Databases",
+        "Computer Science - Digital Libraries",
+        "Computer Science - Discrete Mathematics",
+        "Computer Science - Distributed, Parallel, and Cluster Computing",
+        "Computer Science - Emerging Technologies",
+        "Computer Science - Formal Languages and Automata Theory",
+        "Computer Science - Graphics",
+        "Computer Science - Hardware Architecture",
+        "Computer Science - Human-Computer Interaction",
+        "Computer Science - Information Retrieval",
+        "Computer Science - Information Theory",
+        "Computer Science - Learning",
+        "Computer Science - Logic in Computer Science",
+        "Computer Science - Mathematical Software",
+        "Computer Science - Multiagent Systems",
+        "Computer Science - Multimedia",
+        "Computer Science - Networking and Internet Architecture",
+        "Computer Science - Neural and Evolutionary Computing",
+        "Computer Science - Numerical Analysis",
+        "Computer Science - Operating Systems",
+        "Computer Science - Other Computer Science",
+        "Computer Science - Performance",
+        "Computer Science - Programming Languages",
+        "Computer Science - Robotics",
+        "Computer Science - Social and Information Networks",
+        "Computer Science - Software Engineering",
+        "Computer Science - Sound",
+        "Computer Science - Symbolic Computation",
+        "Computer Science - Systems and Control"
+    ],
+    "Mathematics" : [
+        "Mathematics - Algebraic Geometry",
+        "Mathematics - Algebraic Topology",
+        "Mathematics - Analysis of PDEs",
+        "Mathematics - Category Theory",
+        "Mathematics - Classical Analysis and ODEs",
+        "Mathematics - Combinatorics",
+        "Mathematics - Commutative Algebra",
+        "Mathematics - Complex Variables",
+        "Mathematics - Differential Geometry",
+        "Mathematics - Dynamical Systems",
+        "Mathematics - Functional Analysis",
+        "Mathematics - General Mathematics",
+        "Mathematics - General Topology",
+        "Mathematics - Geometric Topology",
+        "Mathematics - Group Theory",
+        "Mathematics - History and Overview",
+        "Mathematics - K-Theory and Homology",
+        "Mathematics - Logic",
+        "Mathematics - Metric Geometry",
+        "Mathematics - Number Theory",
+        "Mathematics - Numerical Analysis",
+        "Mathematics - Operator Algebras",
+        "Mathematics - Optimization and Control",
+        "Mathematics - Probability",
+        "Mathematics - Quantum Algebra",
+        "Mathematics - Representation Theory",
+        "Mathematics - Rings and Algebras",
+        "Mathematics - Spectral Theory",
+        "Mathematics - Statistics Theory",
+        "Mathematics - Symplectic Geometry"
+    ],
+    "Quantitative Biology": [
+        "Quantitative Biology - Biomolecules",
+        "Quantitative Biology - Cell Behavior",
+        "Quantitative Biology - Genomics",
+        "Quantitative Biology - Molecular Networks",
+        "Quantitative Biology - Neurons and Cognition",
+        "Quantitative Biology - Other Quantitative Biology",
+        "Quantitative Biology - Populations and Evolution",
+        "Quantitative Biology - Quantitative Methods",
+        "Quantitative Biology - Subcellular Processes",
+        "Quantitative Biology - Tissues and Organs"
+    ],
+    "Quantitative Finance" : [
+        "Quantitative Finance - Computational Finance",
+        "Quantitative Finance - General Finance",
+        "Quantitative Finance - Portfolio Management",
+        "Quantitative Finance - Pricing of Securities",
+        "Quantitative Finance - Risk Management",
+        "Quantitative Finance - Statistical Finance",
+        "Quantitative Finance - Trading and Market Microstructure"
+    ],
+    "Statistics" : [
+        "Statistics - Applications",
+        "Statistics - Computation",
+        "Statistics - Machine Learning",
+        "Statistics - Methodology",
+        "Statistics - Other Statistics"
+    ]
+}
 
-app.config(['$interpolateProvider', function($interpolateProvider) {
-    $interpolateProvider.startSymbol('{[');
-    $interpolateProvider.endSymbol(']}');
-}]);
-
-app.controller('filterCtrl', function($scope) {
-    $scope.filters = [{
-        id: 1,
-        label: 'Value',
-        name: 'mainValue'
-    }, {
-        id: 2,
-        label: 'Error',
-        name: 'precision'
-    }, {
-        id: 3,
-        label: 'Magnitude',
-        name: 'magnitude'
-    }, {
-        id: 4,
-        label: 'p-value',
-        name: 'pvalue'
-    }, {
-        id: 5,
-        label: 'Integer Ratio',
-        name: 'int_ratio'
-    }, {
-        id: 6,
-        label: 'Real Ratio',
-        name: 'float_ratio'
-    }, {
-        id: 7,
-        label: 'Mean',
-        name: 'mean'
-    }, {
-        id: 8,
-        label: 'Stddev',
-        name: 'std'
-    }, {
-        id: 9,
-        label: 'Range',
-        name: 'range'
-    }, {
-        id: 10,
-        label: 'Accuracy',
-        name: 'accuracy'
-    }, {
-        id: 11,
-        label: 'magnitude',
-        name: 'mag'
-    }
-    ];
-
-    $scope.filterlist = [
-    ];
-
-    $scope.addFilter = function() {
-        $scope.filterlist.push({
-            selected: $scope.filters[0]
-        });
-    }
-});
-
-app.filter('propsFilter', function() {
-  return function(items, props) {
-    var out = [];
-
-    if (angular.isArray(items)) {
-      items.forEach(function(item) {
-        var itemMatches = false;
-
-        var keys = Object.keys(props);
-        for (var i = 0; i < keys.length; i++) {
-          var prop = keys[i];
-          var text = props[prop].toLowerCase();
-          if (item[prop].toString().toLowerCase().indexOf(text) !== -1) {
-            itemMatches = true;
-            break;
-          }
-        }
-
-        if (itemMatches) {
-          out.push(item);
-        }
-      });
+$("#domain").change(function() {
+    var domain = this.value;
+    var sublist = subjects[domain];
+    var subselect = $("#subdomain");
+    if (domain == "all") {
+        subselect.prop("disabled", true);
     } else {
-      // Let the output be the input untouched
-      out = items;
+        subselect.prop("disabled", false);
     }
-
-    return out;
-  };
+    subselect.html("");
+    subselect.append('<option value="all">All subdomains</option>');
+    for (var i = 0; i < sublist.length; i++) {
+        var subdomain = sublist[i];
+        subselect.append('<option value="' + subdomain + '">' + subdomain + '</option>');
+    }
 });
 
-app.controller('sideBar', function($scope, $http, $timeout) {
-    $scope.subdomains = undefined;
-
-    $scope.domainlist = [
-        {
-            id: 0,
-            label: 'All Domains',
-            value: 'all'
-        },
-        {
-            id: 1,
-            label: 'Physics',
-            value: 'Physics'
-        },
-        {
-            id: 2,
-            label: 'Mathematics',
-            value: 'Mathematics'
-        },
-        {
-            id: 3,
-            label: 'Computer Science',
-            value: 'Computer Science'
-        },
-        {
-            id: 4,
-            label: 'Quantitative Biology',
-            value: 'Quantitative Biology'
-        },
-        {
-            id: 5,
-            label: 'Quantitative Finance',
-            value: 'Quantitative Finance'
-        },
-        {
-            id: 6,
-            label: 'Statistics',
-            value: 'Statistics'
-        }
-    ];
-
-    $scope.selected_domain = $scope.domainlist[0];
-
-    $scope.update_subdomain = function() {
-        $http.get('./subjects.json').
-            success(function(data, status, headers, config) {
-                $scope.subdomains = data[$scope.selected_domain.label];
-        }).
-            error(function(data, status, header, config) {
-                alert("Subject loading failed.");
-        });
-    };
-
-    $scope.counter = 0;
-    $scope.someFunction = function (item, model){
-        $scope.counter++;
-        $scope.eventResult = {item: item, model: model};
-    };
-
-    $scope.multipleDemo = {};
-    $scope.multipleDemo.colors = [];
-
-});
