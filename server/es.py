@@ -13,6 +13,7 @@ COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accura
 #FIELD_PTN = [re.compile(p) for p in [r"caption", r"header_row_\d+\.header_\d+", r"data_row_\d+\.svalue_\d+", r"footnote_\d+", r"keyword_0", r"article-title"]]
 
 NEURO_FIELDS = ["article-title", "caption", "data.data_*.row_header", "footnotes", "headers.header_*", "keywords"]
+MLT_FIELDS = ["article-title", "caption", "keywords","footnotes", "headers.header_*", "data.data_*.row_header"]
 FIELD_PTN = [re.compile(p) for p in [r"article-title", r"caption", r"data.data_\d+\.row_header", r"footnotes", r"headers\.header_\d+", r"keywords"]]
 
 class ES():
@@ -178,15 +179,16 @@ class ES():
         res = self.es.search(index=index, doc_type=doc_type, body=body)
         return res
 
-    def search_with_term_weight(self, weight_str, index, filter):
+    def search_with_term_weight(self, weight_str, index, bestWeight, filter):
         clauses = []
         terms = weight_str.split('\n')
         for term in terms:
             termweight = term.split('\t')
             term = termweight[0]
-            weights = termweight[1:]
-            weights = [int(100*float(w)) for w in weights]
-            field = ["{0}^{1}".format(NEURO_FIELDS[i], weights[i]) for i in range(len(weights)) if weights[i] != 0]
+            weights = termweight[1:7]
+            weights = [int(100*float(w))/100 for w in weights]
+            print weights
+            field = ["{0}^{1}".format(MLT_FIELDS[i], weights[i]*bestWeight[i]) for i in range(len(weights)) if weights[i] != 0]
             if field:
                 clauses.append({
                     "multi_match" : {
