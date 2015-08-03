@@ -8,12 +8,12 @@
 }
 .instruction {
     position: absolute;
-    top: 60px;
-    left: 150px;
+    top: 0px;
+    left: 138px;
 }
 .logout {
     position: absolute;
-    top: 60px;
+    top: 57px;
     left: 637px;
 }
 .rel-scales {
