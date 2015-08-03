@@ -18,6 +18,10 @@
             var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 40) + "px";
             res.css("padding-top", newtop);
         };
+        function mlt(path) {
+            var query = $('input[name=q]').val();
+            window.location.href = 'mlt?q=' + query + '&path=' + path;
+        }
     </script>
 </head>
 
@@ -27,7 +31,7 @@
      <h1 class="title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">EAGER</a></h1>
     {% include 'header.html' %}
     <div class="info">
-        <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/{{dataset}}.html">Find more about the dataset</a>
+        <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/{{dataset}}.html">About the dataset</a>
     </div>
 </header>
 
@@ -72,6 +76,7 @@
           </tbody>
       </table>
       <a class="toggle" onclick="toggle({{hit.id}})">Show/Hide table.</a>
+      <a class="toggle right" onclick="mlt('{{ hit._id }}')">More like this...</a>
     </article>
     {% endfor %}
   </section>
