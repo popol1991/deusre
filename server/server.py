@@ -4,6 +4,7 @@ import os
 import requests
 import wrapper
 import json
+from subprocess import check_output
 from es import ES
 from es import ESResponse
 from flask import Flask
@@ -206,6 +207,19 @@ def search():
     res = res.rerank(params)
     logger.info("Rendering...")
     return render_template('search.html', hits=res, len=len(res), params=params, dataset="elsevier")
+
+@app.route("/deusre/search/mlt", methods=["GET"])
+def mlt():
+    params = request.args
+    query = params['q']
+    pathId = params['path'].split('.')
+    path = ".".join(pathId[:-1])
+    tid = pathId[-1]
+    out = check_output(["java", "-cp", "/Users/Kyle/IdeaProjects/mlt/lib/table2query.jar:/Users/Kyle/IdeaProjects/mlt/lib/stanford-corenlp-full-2015-04-20/stanford-corenlp-3.5.2.jar:/Users/Kyle/IdeaProjects/mlt/lib/stanford-corenlp-full-2015-04-20/stanford-corenlp-3.5.2-models.jar:/Users/Kyle/IdeaProjects/mlt/lib/", "MoreLikeThis", query, path, tid])
+    print out
+    result = es.search_with_term_weight(out, ELSEVIER_INDEX, [1]*6, filter=[])
+    result = result.rerank(params)
+    return render_template('search.html', hits=result, len=len(result), params=params, dataset="elsevier")
 
 def merge(hits1, hits2):
     i = 0
