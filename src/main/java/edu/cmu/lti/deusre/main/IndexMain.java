@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class IndexMain {
     public static final String CONFIG_PATH = "config.properties";
 
-    public static HashMap<String, Long> IDMap;
+    public static HashMap<String, Long> IDMap = null;
 
     public static void main(String[] args) throws IOException {
         Properties config = readConfig(CONFIG_PATH);
@@ -33,21 +33,29 @@ public class IndexMain {
         Parser parser = new XMLParser();
         String dir = config.getProperty("data");
         WorkQueue wq = new FSWorkQueue(dir, parser);
-        IDMap = initIDMap(config.getProperty("id_map"));
+        String useInternalId = config.getProperty("use_internal_id");
+        if (useInternalId.equals("true")) {
+            IDMap = initIDMap(config.getProperty("id_map"));
+        }
         while (wq.hasNext()) {
             JSONObject[] docList = wq.next();
             if (docList == null) continue;
             int tableId = 0;
             for (Map<String, String> doc : docList) {
                 String pathAsId = doc.get("path");
-//                String id = pathAsId + "." + tableId;
-                long internal = getInternalId(pathAsId);
-                if (internal != -1) {
-                    String id = String.format("%d%02d", internal, tableId);
-                    tableId++;
-                    doc.put("id", id);
-                    index.addDoc(doc);
+                String id;
+                if (IDMap == null) {
+                   id = pathAsId + "." + tableId;
+                } else {
+                    long internal = getInternalId(pathAsId);
+                    if (internal == -1) {
+                        continue; // internal id not found, continue to next table
+                    }
+                    id = String.format("%d%02d", internal, tableId);
                 }
+                tableId++;
+                doc.put("id", id);
+                index.addDoc(doc);
             }
         }
         index.close();
