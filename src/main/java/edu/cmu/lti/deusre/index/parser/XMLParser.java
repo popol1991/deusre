@@ -50,7 +50,9 @@ public class XMLParser extends Parser {
 
         JSONObject articleInfo = getArticleInfo(doc);
         JSONObject[] tableList = getTableList(doc);
-        JSONObject[] docList = new JSONObject[tableList.length];
+        JSONObject[] docList = null;
+//        if (((String) ((JSONArray) articleInfo.get("domains")).get(0)).equals("Computer Science")) {
+        docList = new JSONObject[tableList.length];
         for (int i = 0; i < tableList.length; i++) {
             docList[i] = new JSONObject();
             tableList[i].putAll(articleInfo);
@@ -64,6 +66,7 @@ public class XMLParser extends Parser {
             docList[i].put("type", "table");
             docList[i].put("id", String.valueOf(id++));
         }
+//        }
 
         return docList;
     }
@@ -98,6 +101,12 @@ public class XMLParser extends Parser {
                     retTable.put("short-caption", shortCap);
                 }
             }
+        }
+        // acronyms
+        nList = doc.getElementsByTagName("acronyms");
+        if (nList.getLength() != 0) {
+            String acronyms = nList.item(0).getTextContent();
+            retTable.put("acronyms", acronyms);
         }
         // footnotes
         nList = doc.getElementsByTagName("footnote");
@@ -244,7 +253,8 @@ public class XMLParser extends Parser {
                     retHeaders.put(key, new JSONArray());
                 }
                 Node cell = cellList.item(j);
-                ((JSONArray) retHeaders.get(key)).add(cell.getTextContent());
+                String header = cell.getTextContent();
+                ((JSONArray) retHeaders.get(key)).add(header);
             }
         }
         return retHeaders;
@@ -272,7 +282,7 @@ public class XMLParser extends Parser {
         articleInfo.put("authors", listFromXml(doc, "author"));
         articleInfo.put("keywords", listFromXml(doc, "keyword"));
         NodeList abs = doc.getElementsByTagName("abstract");
-        if (abs.getLength() != 0){
+        if (abs.getLength() != 0) {
             articleInfo.put("abstract", abs.item(0).getTextContent());
         }
         NodeList link = doc.getElementsByTagName("link");
@@ -280,30 +290,30 @@ public class XMLParser extends Parser {
             articleInfo.put("link", link.item(0).getTextContent());
         }
 
-        // arXiv specific info
-        String pathAsId = link.item(0).getTextContent().substring(21);
-        articleInfo.put("path", pathAsId);
-        Set<String> domainSet = new HashSet<String>();
-        JSONArray subdomainAry = new JSONArray();
-        NodeList domainList = doc.getElementsByTagName("domain");
-        for (int i = 0; i < domainList.getLength(); i++) {
-            Node domain = domainList.item(i);
-            Element domainElm = (Element) domain;
-            NodeList subList = domainElm.getElementsByTagName("subdomain");
-            if (subList.getLength() != 0) {
-                Node subdomain = subList.item(0);
-                domain.removeChild(subdomain);
-                subdomainAry.add(String.format("%s - %s",
-                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
-            }
-            domainSet.add(domain.getTextContent().trim());
-        }
-        JSONArray domainAry = new JSONArray();
-        for (String domain : domainSet) {
-            domainAry.add(domain);
-        }
-        articleInfo.put("domains", domainAry);
-        articleInfo.put("subdomains", subdomainAry);
+//        // arXiv specific info
+//        String pathAsId = link.item(0).getTextContent().substring(21);
+//        articleInfo.put("path", pathAsId);
+//        Set<String> domainSet = new HashSet<String>();
+//        JSONArray subdomainAry = new JSONArray();
+//        NodeList domainList = doc.getElementsByTagName("domain");
+//        for (int i = 0; i < domainList.getLength(); i++) {
+//            Node domain = domainList.item(i);
+//            Element domainElm = (Element) domain;
+//            NodeList subList = domainElm.getElementsByTagName("subdomain");
+//            if (subList.getLength() != 0) {
+//                Node subdomain = subList.item(0);
+//                domain.removeChild(subdomain);
+//                subdomainAry.add(String.format("%s - %s",
+//                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
+//            }
+//            domainSet.add(domain.getTextContent().trim());
+//        }
+//        JSONArray domainAry = new JSONArray();
+//        for (String domain : domainSet) {
+//            domainAry.add(domain);
+//        }
+//        articleInfo.put("domains", domainAry);
+//        articleInfo.put("subdomains", subdomainAry);
 
         return articleInfo;
     }
