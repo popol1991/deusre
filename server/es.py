@@ -158,8 +158,8 @@ class ES():
                             break
         return [w for w in nummatched]
 
-    def search_with_weight(self, query, weight, index, size, doc_type='table', type="best_fields", highlight=True, filter=None, operator="or"):
-        field = ["{0}^{1}".format(NEURO_FIELDS[i], weight[i]) for i in range(len(weight))]
+    def search_with_weight(self, query, weight, index, size, doc_type='table', type="best_fields", highlight=True, filter=None, operator="or", fields=NEURO_FIELDS):
+        field = ["{0}^{1}".format(fields[i], weight[i]) for i in range(len(weight))]
         body = self.mkbody(query, field, type=type, size=size, operator=operator)
         if filter is not None:
             filter_query = self.mk_filter(filter)

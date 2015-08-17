@@ -158,7 +158,7 @@ def arxiv():
     #: build structured query to elasticsearch
     params = request.args
     if len(params) == 0:
-        return render_template('arxiv.html', hits=[], query="", params={}, dataset="elsevier")
+        return render_template('arxiv.html', hits=[], query="", params={}, dataset="elsevier", pages=0, visible=0, page=0)
     #res = search_local(params, ARXIV_INDEX)
     domainlist = [params[key] for key in params if key.startswith('subdomain')]
     if len(domainlist) == 0 or domainlist[0] == 'all':
@@ -166,11 +166,15 @@ def arxiv():
             domainlist = [params['domain']]
         else:
             domainlist.append('all')
+    if 'page' in params:
+        page = int(params['page']) - 1
+    else:
+        page = 0
     if domainlist[0] == 'all':
-        body = es.mk_text_body(params['q'], 0, DEFAULT_SIZE, ARXIV_INDEX, highlight=True)
+        body = es.mk_text_body(params['q'], page, DEFAULT_SIZE, ARXIV_INDEX, highlight=True)
     else:
         filter_query = es.mk_filter(domainlist)
-        query = es.mk_text_body(params['q'], 0, DEFAULT_SIZE, ARXIV_INDEX, highlight=False)
+        query = es.mk_text_body(params['q'], page, DEFAULT_SIZE, ARXIV_INDEX, highlight=False)
         filtered = dict(query=query['query'], filter=filter_query)
         body = {
             "query" : {
@@ -181,9 +185,12 @@ def arxiv():
                     "headers.header_*": {},
                     "data.data_*.row_header": {}
                 }
-            }
+            },
+            "from": page * DEFAULT_SIZE,
+            "size": DEFAULT_SIZE
         }
     res = es.search(ARXIV_INDEX, body=body)
+    numRes = res['hits']['total']
     res = ESResponse(res)
     logger.info("Reranking...")
     res = res.rerank(params)
@@ -193,7 +200,8 @@ def arxiv():
             hit['subject'] = ", ".join(hit['subdomains'])
         else:
             hit['subject'] = ", ".join(hit['domains'])
-    return render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv")
+    pages = numRes / DEFAULT_SIZE
+    return render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv", pages=pages, visible=min(pages, 5), page=page+1)
 
 @app.route("/deusre/search/submit")
 @app.route("/deusre/search/")
