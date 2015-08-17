@@ -6,3 +6,7 @@ select#domain {
 select#subdomain {
     width: 406px;
 }
+
+a.caption {
+    text-decoration:none;
+}
