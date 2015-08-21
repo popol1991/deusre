@@ -1,8 +1,13 @@
+import json
 import time
 import datetime
 import re
 from elasticsearch import Elasticsearch
 from operator import itemgetter
+
+SPLIT = " $##$ "
+NEWLINE = " #$$# "
+ACRONYM_SPLIT = " $%%$ "
 
 FIELDS = ["article-title", "abstract", "caption", "citations", "data.data_*.row_header", "footnotes", "headers.header_*", "headings",
           "keywords"]
@@ -55,12 +60,12 @@ class ES():
         res = self.es.search(index=index, body=query)
         return ESResponse(res)
 
-    def mk_text_body(self, q, page, size, index, highlight=True):
+    def mk_text_body(self, q, page, size, index, highlight=True, fields=FIELDS):
         query = {
             "query": {
                 "multi_match": {
                     "query": q,
-                    "fields": FIELDS,
+                    "fields": fields,
                     "type": "cross_fields"
                 }
             },
@@ -70,8 +75,8 @@ class ES():
         if highlight:
             query["highlight"] = {
                 "fields": {
-                    "headers.header_*": {},
-                    "data.data_*.row_header": {}
+                    "col_header_field": {},
+                    "row_header_field": {}
                 }
             }
         return query
@@ -187,7 +192,6 @@ class ES():
             term = termweight[0]
             weights = termweight[1:7]
             weights = [int(100*float(w))/100 for w in weights]
-            print weights
             field = ["{0}^{1}".format(MLT_FIELDS[i], weights[i]*bestWeight[i]) for i in range(len(weights)) if weights[i] != 0]
             if field:
                 clauses.append({
@@ -203,7 +207,6 @@ class ES():
                 }
             }
         }
-        print query
         res = self.es.search(index=index, doc_type="table", body=query)
         return ESResponse(res)
 
@@ -217,7 +220,7 @@ class ESResponse():
         self.scores = []
         self.ids = []
         for hit in res['hits']['hits']:
-            jsn = hit['_source']
+            jsn = self.removeAcronyms(hit['_source'])
             jsn['_id'] = hit['_id']
             jsn['_score'] = hit['_score']
             if 'highlight' in hit:
@@ -225,6 +228,15 @@ class ESResponse():
             self.hits.append(jsn)
             self.scores.append(hit['_score'])
             self.ids.append(hit['_id'])
+
+    def removeAcronyms(self, hit):
+        for key in hit:
+            if type(hit[key]) is unicode and ACRONYM_SPLIT in hit[key]:
+                hit[key] = hit[key].split(ACRONYM_SPLIT)[0]
+            elif type(hit[key]) is list:
+                for elem in hit[key]:
+                    elem = elem.split(ACRONYM_SPLIT)[0]
+        return hit
 
     def size(self):
         return len(self.hits);
@@ -236,7 +248,25 @@ class ESResponse():
         #: Add id for tables for selector
         for i in range(len(reranked)):
             reranked[i]['id'] = i
+            reranked[i]['height'] = len(reranked[i]['data_rows'])
         return reranked
+
+    def get_highlighted_cell(self, data, key):
+        if key not in data:
+            return []
+        matchedIdx = []
+        text = data[key][0]
+        if ACRONYM_SPLIT in text:
+            text = text.split(ACRONYM_SPLIT)[0]
+        rows = text.split(NEWLINE)
+        for row in rows:
+            for idx, header in enumerate(row.split(SPLIT)):
+                if '<em>' in header:
+                    matchedIdx.append(idx)
+        if matchedIdx:
+            matchedIdx.sort()
+            matchedIdx = list(set(matchedIdx))
+        return matchedIdx
 
     def filter_highlight(self, hits, params):
         filtered = []
@@ -247,8 +277,8 @@ class ESResponse():
                 rows = []
                 if not self.match_all:
                     hl = hit['highlight']
-                    columns = [int(key.split('_')[1]) for key in hl if key.startswith('headers')]
-                    rows = [int(key.split('.')[1].split('_')[1]) for key in hl if key.startswith('data')]
+                    columns = self.get_highlighted_cell(hl, 'col_header_field')
+                    rows = self.get_highlighted_cell(hl, 'row_header_field')
                 if len(columns) == 0:
                     width = len(hit['data_rows'][0])
                     columns = range(width)
@@ -346,33 +376,27 @@ class ESResponse():
 
     def convert(self, hit):
         # header
-        length = 0
-        depth = 0
-        for h in hit['headers']:
-            idx = int(h.split('_')[1])
-            length = idx if idx > length else length
-            depth = len(hit['headers'][h])
-        header_rows = []
-        for i in range(depth):
-            headers = [None] * (length + 1)
-            header_rows.append(headers)
-        for h in hit['headers']:
-            idx = int(h.split('_')[1])
-            for d in range(len(hit['headers'][h])):
-                if d < len(header_rows) and idx < len(header_rows[d]):
-                    header_rows[d][idx] = dict(value=hit['headers'][h][d])
-        hit['header_rows'] = header_rows
+        headerRows = []
+        headerField = hit['col_header_field'].strip()
+        if headerField:
+            rows = headerField.split(NEWLINE)
+        else:
+            rows = []
+        for row in rows:
+            headerRows.append(row.split(SPLIT))
+        hit['header_rows'] = headerRows
 
         # data
-        length = 0
-        for r in hit['data']:
+        dataRows = json.loads(hit['data'])
+        length = len(dataRows)
+        data_rows = [None] * (length + 1)
+        for r in dataRows:
             idx = int(r.split('_')[1])
             length = idx if idx > length else length
-        data_rows = [None] * (length + 1)
-        for r in hit['data']:
+        for r in dataRows:
             idx = int(r.split('_')[1])
-            row = [dict(type=-1, text=hit['data'][r]['row_header'])]
-            for val in hit['data'][r]['values']:
+            row = [dict(type=-1, text=dataRows[r]['row_header'])]
+            for val in dataRows[r]['values']:
                 row.append(val)
             data_rows[idx] = row
         hit['data_rows'] = data_rows

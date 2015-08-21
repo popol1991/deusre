@@ -11,7 +11,6 @@ from flask import Flask
 from flask import redirect, request, render_template, make_response
 from werkzeug import SharedDataMiddleware
 from logistic import Logistic
-from render import render_neuroelectro
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -20,11 +19,13 @@ logger = logging.getLogger(__name__)
 DEFAULT_SIZE = 20
 FEDERATE_INDEX = "federate"
 ELSEVIER_INDEX = "deusre"
-ARXIV_INDEX = "arxiv"
+ARXIV_INDEX = "temp"
 NEURO_INDEX = "neuroelectro"
 FEDERATE_SIZE = 10
 DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed"]
 WRAPPER_LIST = [getattr(wrapper, "".join([w, "Wrapper"]))() for w in DB_LIST]
+
+ARXIV_FIELDS = ["article-title", "caption", "row_header_field", "footnotes", "col_header_field", "keywords"]
 
 #: old best weight for different type of queries
 #WEIGHT = [0.22010851, 0.11594479, -0.00707995, -0.09021589, -0.04557491,  0.29571261]
@@ -171,20 +172,14 @@ def arxiv():
     else:
         page = 0
     if domainlist[0] == 'all':
-        body = es.mk_text_body(params['q'], page, DEFAULT_SIZE, ARXIV_INDEX, highlight=True)
+        body = es.mk_text_body(params['q'], page, DEFAULT_SIZE, ARXIV_INDEX, highlight=True, fields=ARXIV_FIELDS)
     else:
         filter_query = es.mk_filter(domainlist)
-        query = es.mk_text_body(params['q'], page, DEFAULT_SIZE, ARXIV_INDEX, highlight=False)
+        query = es.mk_text_body(params['q'], page, DEFAULT_SIZE, ARXIV_INDEX, highlight=False, fields=ARXIV_FIELDS)
         filtered = dict(query=query['query'], filter=filter_query)
         body = {
             "query" : {
                 "filtered" : filtered
-            },
-            "highlight" : {
-                "fields": {
-                    "headers.header_*": {},
-                    "data.data_*.row_header": {}
-                }
             },
             "from": page * DEFAULT_SIZE,
             "size": DEFAULT_SIZE
