@@ -159,8 +159,7 @@ var subjects = {
     ]
 }
 
-$("#domain").change(function() {
-    var domain = this.value;
+function setSubdomain(domain) {
     var sublist = subjects[domain];
     var subselect = $("#subdomain");
     if (domain == "all") {
@@ -174,5 +173,6 @@ $("#domain").change(function() {
         var subdomain = sublist[i];
         subselect.append('<option value="' + subdomain + '">' + subdomain + '</option>');
     }
-});
+};
+
 

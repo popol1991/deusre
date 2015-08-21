@@ -10,3 +10,13 @@ select#subdomain {
 a.caption {
     text-decoration:none;
 }
+
+sup {
+    vertical-align: super;
+    font-size: medium;
+}
+
+.bottom-center {
+    margin-left: 220px;
+}
+

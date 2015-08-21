@@ -2,32 +2,108 @@
 <html lang='en' ng-app="filter">
 <head>
     <meta charset='utf-8'>
-    <title>Scientific Data Search</title>
+    <title>Table arXiv</title>
     <link rel='stylesheet' href='/static/css/reset.css'>
     <link rel='stylesheet' href='/static/css/index.css'>
     <link rel='stylesheet' href='/static/css/arxiv.css'>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/parsley.min.js"></script>
     <script src="/static/js/angular.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <script src="/static/js/jquery.twbsPagination.min.js"></script>
     <script src="/static/js/filter.js"></script>
+    <script src="/static/js/arxiv.js"></script>
     <script>
         function toggle(id) {
+            var more = "Show more ";
+            var less = "Show less ";
             $("tbody#"+id).toggle();
+            var t = $("#toggle-"+id);
+            var pair = t.text().split("(");
+            var status = pair[0];
+            if (status == more) {
+                status = less;
+            } else {
+                status = more;
+            };
+            t.text(status.concat("(").concat(pair[1]));
         };
         function addfilter() {
             var res = $(".results-container");
-            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 40) + "px";
+            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) + 30) + "px";
             res.css("padding-top", newtop);
         };
+        function removefilter() {
+            var res = $(".results-container");
+            var newtop = String(parseInt(res.css("padding-top").slice(0,-2)) - 30) + "px";
+            res.css("padding-top", newtop);
+        };
+        function setPage() {
+            var pages = parseInt("{{pages}}");
+            var visible = parseInt("{{visible}}");
+            var page = parseInt("{{page}}");
+            var query = window.location.search.substring(1);
+            var vars = query.split('&');
+            var newVars = []
+            for (var i=0; i < vars.length; i++) {
+                var name = vars[i].split('=')[0];
+                if (name != 'page') {
+                    newVars.push(vars[i]);
+                };
+            };
+            query = newVars.join("&");
+            $('#pagination').twbsPagination({
+                totalPages: pages,
+                visiblePages: visible,
+                startPage: page,
+                hrefVariable: "[[number]]",
+                href: "?" + query + "&page=[[number]]"
+            });
+        };
+        function loadDomain() {
+            var query = window.location.search.substring(1);
+            var vars = query.split('&');
+            var subdomain = null;
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split('=')
+                if (pair[0] == 'domain') {
+                    var domain = pair[1].replace("+", " ");
+                    $('select#domain option').filter(function() {
+                        return $(this).text() == domain;
+                    }).prop('selected', true);
+                    setSubdomain(domain);
+                };
+                if (pair[0] == 'subdomain') {
+                    subdomain = pair[1].replace(/\+/g, " ");
+                };
+            };
+            $('select#subdomain option').filter(function() {
+                return $(this).text() == subdomain;
+            }).prop('selected', true);
+        };
+        function mkSpaceForFilters() {
+            var filterList = $('.filter_item');
+            var filterNum = filterList.length;
+            for (var i=0; i < filterNum; i++) {
+                addfilter();
+            }
+        }
+        $(document).ready(function() {
+            {% if len != 0 %}
+            setPage();
+            {% endif %}
+            loadDomain();
+            mkSpaceForFilters();
+        });
     </script>
 </head>
 
 <body>
 <!-- Title and search box -->
 <header class="jumbotron">
-     <h1 class="title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">EAGER</a></h1>
-  <div class="search-box-container" data-ng-controller='filterCtrl'>
-      <form id='query' data-parsley-validate action="./submit" method="get" autocomplete="off">
+<h1 class="title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">Table<sup>arXiv</sup></a></h1>
+  <div class="search-box-container">
+      <form id='query' data-parsley-validate action="./submit" method="get" autocomplete="off" onsubmit="submitForms()">
         <input type="submit" class="search-button" value="Search">
         <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
         <select name="domain" id="domain">
@@ -40,13 +116,16 @@
         </select>
         <select name="subdomain" id="subdomain" disabled>
         </select>
+      </form>
+  </div>
+      <form id="filter-form" data-parley-validate data-ng-controller="filterCtrl">
         <table class="filter">
             <tr class="filter_item" ng-repeat="filter in filterlist">
                 <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
                 </select></td>
                 <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min" value="{[ filter.selected.min ]}" placeholder="From:"/></td>
                 <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max" value="{[ filter.selected.max ]}" placeholder="To:"/></td>
-                <td style="border:none"><button class="addFilter" type="button" ng-click="remove($index)">Remove</button></td>
+                <td style="border:none"><button class="addFilter" type="button" onclick="removefilter()" ng-click="remove($index)">Remove</button></td>
             </tr>
             <tr>
                 <td style="border:none;">Filter:</td>
@@ -56,7 +135,6 @@
             </tr>
 		</table>
     </form>
-  </div>
     <div class="info">
         <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/{{dataset}}.html">About the dataset</a>
     </div>
@@ -71,7 +149,7 @@
     {% for hit in hits %}
     <article class='result'>
       <!--<h2>{{ hit.id}}</h2>-->
-      <h2>{{ hit.caption }}</h2>
+      <a class="caption" href="{{hit.link}}"><h2>{{ hit['short-caption'] }}</h2></a>
       <h3>From: {{ hit['article-title']}}</h3>
       <br>
       <table>
@@ -80,7 +158,7 @@
               <tr>
                 {% for header in row %}
                   <th>
-                    {{ header.value }}
+                    {{ header }}
                   </th>
                 {% endfor %}
               </tr>
@@ -102,13 +180,25 @@
           {% endif %}
           </tbody>
       </table>
-      <a class="toggle" onclick="toggle({{hit.id}})">Show/Hide table.</a>
+      <a id="toggle-{{hit.id}}" class="toggle" onclick="toggle({{hit.id}})">Show more ({{ hit.height }} rows total)</a>
     </article>
     {% endfor %}
   </section>
 </main>
 
+<div class="bottom-center bootstrap">
+<ul id="pagination" class="pagination"></ul>
+</div>
+
 <!-- Load resources -->
-<script src="/static/js/arxiv.js"></script>
+<script>
+$("#domain").change(function() {
+    var domain = this.value;
+    setSubdomain(domain);
+});
+function submitForms() {
+    $('#filter-form :input').not(':submit').clone().hide().appendTo('#query');
+};
+</script>
 </body>
 </html>
