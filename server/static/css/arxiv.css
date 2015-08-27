@@ -5,6 +5,7 @@ select#domain {
 
 select#subdomain {
     width: 406px;
+    float: left;
 }
 
 a.caption {
@@ -20,3 +21,23 @@ sup {
     margin-left: 220px;
 }
 
+.add-filter {
+  float: right;
+  width: 120px;
+  height: 30%;
+  cursor: pointer;
+  vertical-align: center;
+  font-size: 18px;
+  /*text-transform: uppercase;*/
+  background: none;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  color: #fff;
+  margin: -3px 5px 0px 5px;
+  padding-top: 0px;
+}
+.add-filter:hover,
+.add-filter:active {
+  color: #337ab7;
+  background: #fff;
+}

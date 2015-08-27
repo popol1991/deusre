@@ -134,7 +134,7 @@ form#filter-form {
 .results-container {
   height: 100%;
   width: 100%;
-  padding-top: 65px;
+  padding-top: 35px;
   padding-bottom: 30px;
 }
 .federate-results-container {
@@ -195,9 +195,10 @@ th {
 /* for no result notice and classification result */
 .notice {
   max-width: 800px;
-  font-size: 17px;
-  margin-left: 145px;
-  margin-bottom: 10px;
+  font-size: 15px;
+  margin-left: 46px;
+  margin-bottom: 2px;
+  color: grey;
 }
 .dummy {
   opacity: 0.4;
