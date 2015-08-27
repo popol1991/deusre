@@ -146,11 +146,13 @@
 
 <!-- Listing of search results -->
 <main class="results-container">
-    {% if len == 0 %}
-    <p class="notice">No results found.</p>
-    {% else %}
-    <p class="notice">Results 1-10 of about {{ resNum }} for {{ params['q'] }}.</p>
-    {% endif  %}
+    {% if 'q' in params %}
+        {% if len == 0 %}
+        <p class="notice">No results found.</p>
+        {% else %}
+        <p class="notice">Results <b>1-10</b> of about <b>{{ resNum }}</b> for <b>{{ params['q'] }}</b>.</p>
+        {% endif  %}
+    {% endif %}
   <section class='results'>
     {% for hit in hits %}
     <article class='result'>
