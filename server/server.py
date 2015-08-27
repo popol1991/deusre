@@ -16,10 +16,10 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DEFAULT_SIZE = 20
+DEFAULT_SIZE = 10
 FEDERATE_INDEX = "federate"
 ELSEVIER_INDEX = "deusre"
-ARXIV_INDEX = "temp"
+ARXIV_INDEX = "arxiv-cs"
 NEURO_INDEX = "neuroelectro"
 FEDERATE_SIZE = 10
 DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed"]
@@ -196,7 +196,7 @@ def arxiv():
         else:
             hit['subject'] = ", ".join(hit['domains'])
     pages = numRes / DEFAULT_SIZE
-    return render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv", pages=pages, visible=min(pages, 5), page=page+1)
+    return render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv", pages=pages, visible=min(pages, 5), page=page+1, resNum=numRes)
 
 @app.route("/deusre/search/submit")
 @app.route("/deusre/search/")

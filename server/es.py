@@ -5,8 +5,8 @@ import re
 from elasticsearch import Elasticsearch
 from operator import itemgetter
 
-SPLIT = " $##$ "
-NEWLINE = " #$$# "
+SPLIT = "$##$"
+NEWLINE = "#$$#"
 ACRONYM_SPLIT = " $%%$ "
 
 FIELDS = ["article-title", "abstract", "caption", "citations", "data.data_*.row_header", "footnotes", "headers.header_*", "headings",
@@ -248,7 +248,7 @@ class ESResponse():
         #: Add id for tables for selector
         for i in range(len(reranked)):
             reranked[i]['id'] = i
-            reranked[i]['height'] = len(reranked[i]['data_rows'])
+            reranked[i]['height'] = len(reranked[i]['data_rows']) + len(reranked[i]['header_rows'])
         return reranked
 
     def get_highlighted_cell(self, data, key):
@@ -364,6 +364,22 @@ class ESResponse():
         else:
             return True
 
+    def expand(self, row):
+        if not row or len(row) == 1:
+            return row
+        retRow = []
+        prev = row[0]
+        count = 1
+        for i in xrange(1, len(row)):
+            if row[i] == prev:
+                count += 1
+            else:
+                retRow.append((prev, count))
+                prev = row[i]
+                count = 1
+        retRow.append((prev, count))
+        return retRow
+
     def satisfy(self, cell, params, feature):
         minimum = "_".join([feature, "min"])
         maximum = "_".join([feature, "max"])
@@ -383,8 +399,8 @@ class ESResponse():
         else:
             rows = []
         for row in rows:
-            headerRows.append(row.split(SPLIT))
-        hit['header_rows'] = headerRows
+            headerRows.append(self.expand(row.split(SPLIT)))
+        hit['header_rows'] = [x for x in headerRows if x is not None]
 
         # data
         dataRows = json.loads(hit['data'])
@@ -399,7 +415,7 @@ class ESResponse():
             for val in dataRows[r]['values']:
                 row.append(val)
             data_rows[idx] = row
-        hit['data_rows'] = data_rows
+        hit['data_rows'] = [x for x in data_rows if x is not None]
         return hit
 
     def hits_for_federate(self):
