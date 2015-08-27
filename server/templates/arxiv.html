@@ -17,7 +17,10 @@
         function toggle(id) {
             var more = "Show more ";
             var less = "Show less ";
-            $("tbody#"+id).toggle();
+
+            $("tbody#"+id+"-preview").toggle();
+            $("tbody#"+id+"-full").toggle();
+
             var t = $("#toggle-"+id);
             var pair = t.text().split("(");
             var status = pair[0];
@@ -100,8 +103,8 @@
 
 <body>
 <!-- Title and search box -->
-<header class="jumbotron">
-<h1 class="title"><a href="http://boston.lti.cs.cmu.edu/eager/deusre/index.html">Table<sup>arXiv</sup></a></h1>
+<header class="jumbotron" data-ng-controller="filterCtrl">
+<h1 class="title"><a href="/deusre/arxiv">Table<sup>arXiv</sup></a></h1>
   <div class="search-box-container">
       <form id='query' data-parsley-validate action="./submit" method="get" autocomplete="off" onsubmit="submitForms()">
         <input type="submit" class="search-button" value="Search">
@@ -116,9 +119,10 @@
         </select>
         <select name="subdomain" id="subdomain" disabled>
         </select>
+        <button class="add-filter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button>
       </form>
   </div>
-      <form id="filter-form" data-parley-validate data-ng-controller="filterCtrl">
+      <form id="filter-form" data-parley-validate >
         <table class="filter">
             <tr class="filter_item" ng-repeat="filter in filterlist">
                 <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
@@ -127,12 +131,12 @@
                 <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max" value="{[ filter.selected.max ]}" placeholder="To:"/></td>
                 <td style="border:none"><button class="addFilter" type="button" onclick="removefilter()" ng-click="remove($index)">Remove</button></td>
             </tr>
-            <tr>
-                <td style="border:none;">Filter:</td>
-                <td class="dummy"><input disabled/></td>
-                <td class="dummy"><input disabled/></td>
-                <td style="border:none;"><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>
-            </tr>
+            <!--<tr>-->
+                <!--<td style="border:none;">Filter:</td>-->
+                <!--<td class="dummy"><input disabled/></td>-->
+                <!--<td class="dummy"><input disabled/></td>-->
+                <!--<td style="border:none;"><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>-->
+            <!--</tr>-->
 		</table>
     </form>
     <div class="info">
@@ -143,7 +147,9 @@
 <!-- Listing of search results -->
 <main class="results-container">
     {% if len == 0 %}
-    <p>No results found.</p>
+    <p class="notice">No results found.</p>
+    {% else %}
+    <p class="notice">Results 1-10 of about {{ resNum }} for {{ params['q'] }}.</p>
     {% endif  %}
   <section class='results'>
     {% for hit in hits %}
@@ -157,14 +163,29 @@
             {% for row in hit.header_rows %}
               <tr>
                 {% for header in row %}
-                  <th>
-                    {{ header }}
+                <th colspan="{{ header[1] }}">
+                    {{ header[0] }}
                   </th>
                 {% endfor %}
               </tr>
             {% endfor %}
           </thead>
-          <tbody id="{{ hit.id }}" style="display:none">
+        <tbody id="{{ hit.id }}-preview">
+        {% if 'data_rows' in hit %}
+            {% for row in hit.data_rows[:2] %}
+            <tr>
+                {% if row %}
+                {% for value in row %}
+                    <td id="cell" class="highlight_{{ value.highlight }}">
+                    {{ value.text }}
+                    </td>
+                {% endfor %}
+                {% endif %}
+            </tr>
+            {% endfor %}
+        {% endif %}
+        </tbody>
+          <tbody id="{{ hit.id }}-full" style="display:none">
           {% if 'data_rows' in hit %}
               {% for row in hit.data_rows %}
               <tr>
