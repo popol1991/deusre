@@ -1,5 +1,6 @@
 import pickle
 import json
+from assessments import Assessment
 from subprocess import check_output
 from datetime import datetime
 from merge import interleave
@@ -17,6 +18,8 @@ CELL_FEATURE   = ["magnitude", "mainValue", "precision", "pvalue"]
 COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accuracy", "magnitude"]
 FILTER_LIST    = CELL_FEATURE + COLUMN_FEATURE
 
+FIELDS = ["article-title", "caption", "data.data_*.row_header", "footnotes", "headers.header_*", "keywords"]
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "BLAHBLAHBLAH"
 login_manager = LoginManager()
@@ -25,12 +28,16 @@ login_manager.init_app(app)
 DEFAULT_INDEX = None
 DEFAULT_FILTERS = None
 es = None
+assessed = None
+
 def build_app(config_path):
     global DEFAULT_INDEX
     global DEFAULT_FILTERS
     global es
+    global assessed
     config = json.load(open(config_path))
     es = ES(config['es_server'])
+    assessed = Assessment(config)
     DEFAULT_INDEX = config['index']
     if 'filter' in config:
         DEFAULT_FILTERS = [config['filter']]
@@ -204,6 +211,23 @@ def get_filter_list(params):
             ret_list.append(flter)
     return ret_list
 
+@app.route("/deusre/validate")
+@login_required
+def validate():
+    userid = current_user.id
+    if User.get(userid)[2]:
+        return redirect(url_for('login'))
+
+    toValid = assessed.nextToValidate(userid)
+    if toValid is None:
+        return "All queries have been validated.  Thanks!"
+
+    params = dict()
+    query = toValid['judge']['query']
+    for kvp in query:
+        params[kvp['name']] = kvp['value']
+    return pool(params)
+
 @app.route("/deusre/judge", methods=["GET"])
 @app.route("/deusre/submit", methods=["GET"])
 @login_required
@@ -215,26 +239,28 @@ def judge():
     params = request.args
     if len(params) == 0:
         return render_template("judge.html", hits=[], len=0, params=None)
+    return pool(params)
+
+def pool(params):
     query = params['q']
     if len(query) == 0:
         init_rank = es.match_all(0, DEFAULT_SIZE, index=DEFAULT_INDEX)
         res = init_rank.rerank(params)
     else:
         #init_rank = es.text_search(query, 0, DEFAULT_SIZE, index=DEFAULT_INDEX, highlight=False)
-        rank_simple = es.search_with_weight(query, [1]*6, DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS)
+        rank_simple = es.search_with_weight(query, [1]*6, DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
         # search with neuron best weight and best_fields type
-        rank_neuro_best = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS)
+        rank_neuro_best = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
         # search with property best weight and best_fields type
-        rank_prop_best = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS)
+        rank_prop_best = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
         # search with neuron best weight and cross_fields type
-        rank_neuro_cross = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS)
+        rank_neuro_cross = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
         # search with property best weight and cross_fields type
-        rank_prop_cross = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS)
+        rank_prop_cross = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
         ranklist = [rank_simple, rank_neuro_best, rank_prop_best, rank_neuro_cross, rank_prop_cross]
         res = interleave(ranklist, params)
 
     filterlist = get_filter_list(params)
-    print filterlist
 
     return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist)
 
