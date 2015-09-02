@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_SIZE = 10
 FEDERATE_INDEX = "federate"
 ELSEVIER_INDEX = "deusre"
-ARXIV_INDEX = "arxiv-cs"
+ARXIV_INDEX = "test"
 NEURO_INDEX = "neuroelectro"
 FEDERATE_SIZE = 10
 DB_LIST = ["NIF", "Dryad", "Harvard", "Pubmed"]
@@ -159,7 +159,7 @@ def arxiv():
     #: build structured query to elasticsearch
     params = request.args
     if len(params) == 0:
-        return render_template('arxiv.html', hits=[], query="", params={}, dataset="elsevier", pages=0, visible=0, page=0)
+        return render_template('arxiv.html', len=0, hits=[], query="", params={}, dataset="elsevier", pages=0, visible=0, page=0)
     #res = search_local(params, ARXIV_INDEX)
     domainlist = [params[key] for key in params if key.startswith('subdomain')]
     if len(domainlist) == 0 or domainlist[0] == 'all':
@@ -195,7 +195,7 @@ def arxiv():
             hit['subject'] = ", ".join(hit['subdomains'])
         else:
             hit['subject'] = ", ".join(hit['domains'])
-    pages = numRes / DEFAULT_SIZE
+    pages = (numRes + DEFAULT_SIZE) / DEFAULT_SIZE
     return render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv", pages=pages, visible=min(pages, 5), page=page+1, resNum=numRes)
 
 @app.route("/deusre/search/submit")
