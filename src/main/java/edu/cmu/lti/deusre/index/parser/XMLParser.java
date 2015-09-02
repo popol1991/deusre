@@ -1,6 +1,7 @@
 package edu.cmu.lti.deusre.index.parser;
 
 import edu.cmu.lti.huiying.features.Generator;
+
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import org.json.simple.JSONArray;
@@ -23,7 +24,11 @@ import java.util.*;
  * Created by Kyle on 2/4/15.
  */
 public class XMLParser extends Parser {
+    public static final String SPLIT = " $##$ ";
+    public static final String NEWLINE = " #$$# ";
+    public static final String ACRONYM_SPLIT = "$%%$";
     private static SentenceDetectorME sdetector = null;
+    private static List<List<String>> acronymList = null;
     public static int id = 0;
 
     private Generator generator;
@@ -34,6 +39,21 @@ public class XMLParser extends Parser {
         if (sdetector == null) {
             sdetector = initSentDetector();
         }
+        if (acronymList == null) {
+            acronymList = initAcronymList();
+        }
+    }
+
+    private static List<List<String>> initAcronymList() throws FileNotFoundException {
+        List<List<String>> retList = new ArrayList<>();
+        Scanner scanner = new Scanner(new File("configuration/acronyms.txt"));
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            String[] acrList = line.toLowerCase().split("\t");
+            retList.add(Arrays.asList(acrList));
+        }
+        scanner.close();
+        return retList;
     }
 
     private static SentenceDetectorME initSentDetector() throws IOException {
@@ -46,29 +66,41 @@ public class XMLParser extends Parser {
 
     @Override
     public JSONObject[] parse(Path path) {
-        Document doc = getDocument(path);
+        Document doc = getDocument(path); // get XML Document instance
 
         JSONObject articleInfo = getArticleInfo(doc);
         JSONObject[] tableList = getTableList(doc);
         JSONObject[] docList = null;
-//        if (((String) ((JSONArray) articleInfo.get("domains")).get(0)).equals("Computer Science")) {
-        docList = new JSONObject[tableList.length];
-        for (int i = 0; i < tableList.length; i++) {
-            docList[i] = new JSONObject();
-            tableList[i].putAll(articleInfo);
-            if (tableList[i].containsKey("path")) {
-                docList[i].put("path", tableList[i].get("path"));
-            } else {
-                tableList[i].put("path", path.toString());
-                docList[i].put("path", path.toString());
+        JSONArray domains = (JSONArray) articleInfo.get("domains");
+        boolean interested = false;
+        for (int i = 0; i < domains.size(); i++) {
+            if (((String) domains.get(i)).equals("Computer Science")) {
+                interested = true;
+                break;
             }
-            docList[i].put("source", tableList[i].toJSONString());
-            docList[i].put("type", "table");
-            docList[i].put("id", String.valueOf(id++));
         }
-//        }
+        if (interested) {
+            docList = new JSONObject[tableList.length];
+            for (int i = 0; i < tableList.length; i++) {
+                docList[i] = new JSONObject();
+                tableList[i].putAll(articleInfo);
+                if (tableList[i].containsKey("path")) {
+                    docList[i].put("path", tableList[i].get("path"));
+                } else {
+                    tableList[i].put("path", path.toString());
+                    docList[i].put("path", path.toString());
+                }
+                docList[i].put("source", tableList[i].toJSONString());
+                docList[i].put("type", "table");
+                docList[i].put("id", String.valueOf(id++));
+            }
+        }
 
         return docList;
+    }
+
+    private String getTextWithAcronym(Node node) {
+        return expandAcronyms(node.getTextContent());
     }
 
     private JSONObject[] getTableList(Document doc) {
@@ -82,15 +114,22 @@ public class XMLParser extends Parser {
 
     private JSONObject getTable(Element doc) {
         JSONObject retTable = new JSONObject();
-        // caption
-        NodeList nList = doc.getElementsByTagName("caption");
+        // html
+        NodeList nList = doc.getElementsByTagName("html");
         if (nList.getLength() != 0) {
-            String caption = nList.item(0).getTextContent();
+            String html = nList.item(0).getTextContent();
+            retTable.put("html", html);
+        }
+        // caption
+        nList = doc.getElementsByTagName("caption");
+        if (nList.getLength() != 0) {
+            String caption = getTextWithAcronym(nList.item(0)).replaceAll("\\?\\?", "");
             retTable.put("caption", caption);
+            retTable.put("short-caption", caption);
             String[] sentences = sdetector.sentDetect(caption);
             if (sentences.length > 1) {
                 String shortCap = null;
-                if (sentences[0].toLowerCase().startsWith("table")) {
+                if (sentences[0].toLowerCase().startsWith("table") && sentences[0].length() < 10) {
                     if (sentences.length > 2) {
                         shortCap = " ".join(sentences[0], sentences[1]);
                     }
@@ -113,7 +152,7 @@ public class XMLParser extends Parser {
         if (nList.getLength() > 0) {
             JSONArray fnAry = new JSONArray();
             for (int i = 0; i < nList.getLength(); i++) {
-                fnAry.add(nList.item(i).getTextContent());
+                fnAry.add(getTextWithAcronym(nList.item(i)));
             }
             retTable.put("footnotes", fnAry);
         }
@@ -134,7 +173,7 @@ public class XMLParser extends Parser {
                     citationExpr = xpath.compile("citation/sentence");
                     node = (Node) citationExpr.evaluate(nList.item(i), XPathConstants.NODE);
                     if (node != null) {
-                        citeAry.add(node.getTextContent());
+                        citeAry.add(getTextWithAcronym(node));
                     }
                 } catch (XPathExpressionException e) {
                     e.printStackTrace();
@@ -144,13 +183,17 @@ public class XMLParser extends Parser {
             retTable.put("citations", citeAry);
         }
         // headers and rows
-        retTable.put("headers", getHeadersFromXml(doc, "headers", "header"));
-        retTable.put("data", getDataRowsFromXml(doc));
+        String headerField = getHeadersFromXml(doc, "headers", "header");
+        retTable.put("col_header_field", headerField);
+//        retTable.put("headers", getHeadersFromXml(doc, "headers", "header");
+        Object[] rowObject = getDataRowsFromXml(doc);
+        retTable.put("row_header_field", rowObject[0]);
+        retTable.put("data", rowObject[1]);
         retTable.put("column_stats", getColumnStats(doc));
         return retTable;
     }
 
-    private JSONObject getColumnStats(Element doc) {
+    private String getColumnStats(Element doc) {
         JSONObject columnStats = new JSONObject();
         NodeList nList = doc.getElementsByTagName("row");
         List<List<String>> rowList = new ArrayList<>();
@@ -178,7 +221,7 @@ public class XMLParser extends Parser {
                 columnStats.put("col_" + col, colStat);
             }
         }
-        return columnStats;
+        return columnStats.toJSONString();
     }
 
     private List<List<String>> getColumns(List<List<String>> rowList) {
@@ -200,7 +243,8 @@ public class XMLParser extends Parser {
         return columnList;
     }
 
-    private JSONObject getDataRowsFromXml(Element doc) {
+    private Object[] getDataRowsFromXml(Element doc) {
+        StringBuilder sb = new StringBuilder();
         JSONObject retRows = new JSONObject();
         NodeList nList = doc.getElementsByTagName("row");
         for (int i = 0; i < nList.getLength(); i++) {
@@ -210,7 +254,13 @@ public class XMLParser extends Parser {
             NodeList cellList = rowNode.getElementsByTagName("value");
             if (cellList.getLength() > 0) {
                 // assume the first and only the first value of each data row is the row header
-                dataRow.put("row_header", cellList.item(0).getTextContent());
+                String rowHeader = cellList.item(0).getTextContent();
+                dataRow.put("row_header", rowHeader);
+                sb.append(rowHeader);
+                if (i != nList.getLength() - 1) {
+                    sb.append(SPLIT);
+                }
+
                 for (int j = 1; j < cellList.getLength(); j++) {
                     String text = cellList.item(j).getTextContent();
                     text = replaceMinusSign(text);
@@ -230,7 +280,21 @@ public class XMLParser extends Parser {
             }
             retRows.put("data_" + i, dataRow);
         }
-        return retRows;
+        return new Object[]{expandAcronyms(sb.toString()), retRows.toJSONString()};
+    }
+
+    private String expandAcronyms(String text) {
+        StringBuilder sb = new StringBuilder();
+        String lowerText = text.toLowerCase();
+        for (List<String> acrGroup : acronymList) {
+            String full = acrGroup.get(0);
+            if (lowerText.contains(full)) {
+                sb.append(" ").append(String.join(" ", acrGroup.subList(1, acrGroup.size())));
+                break;
+            }
+        }
+        return String.join(" ", Arrays.asList(text, ACRONYM_SPLIT, sb.toString()));
+//        return String.join(" ", Arrays.asList(text, ACRONYM_SPLIT, ""));
     }
 
     private String replaceMinusSign(String text) {
@@ -241,23 +305,25 @@ public class XMLParser extends Parser {
         return retStr;
     }
 
-    private JSONObject getHeadersFromXml(Element doc, String rowTag, String cellTag) {
-        JSONObject retHeaders = new JSONObject();
+    private String getHeadersFromXml(Element doc, String rowTag, String cellTag) {
+        StringBuilder sb = new StringBuilder();
         NodeList nList = doc.getElementsByTagName(rowTag);
         for (int i = 0; i < nList.getLength(); i++) {
             Element rowNode = (Element) nList.item(i);
             NodeList cellList = rowNode.getElementsByTagName(cellTag);
             for (int j = 0; j < cellList.getLength(); j++) {
-                String key = "header_" + j;
-                if (!retHeaders.containsKey(key)) {
-                    retHeaders.put(key, new JSONArray());
-                }
                 Node cell = cellList.item(j);
                 String header = cell.getTextContent();
-                ((JSONArray) retHeaders.get(key)).add(header);
+                sb.append(header);
+                if (j != cellList.getLength() - 1) {
+                    sb.append(SPLIT);
+                }
+            }
+            if (i != nList.getLength() - 1) {
+                sb.append(NEWLINE);
             }
         }
-        return retHeaders;
+        return expandAcronyms(sb.toString());
     }
 
     private JSONObject getArticleInfo(Document doc) {
@@ -278,42 +344,42 @@ public class XMLParser extends Parser {
             articleInfo.put("source", "default");
         }
         Node title = doc.getElementsByTagName("article-title").item(0);
-        articleInfo.put("article-title", title.getTextContent());
+        articleInfo.put("article-title", getTextWithAcronym(title));
         articleInfo.put("authors", listFromXml(doc, "author"));
         articleInfo.put("keywords", listFromXml(doc, "keyword"));
         NodeList abs = doc.getElementsByTagName("abstract");
         if (abs.getLength() != 0) {
-            articleInfo.put("abstract", abs.item(0).getTextContent());
+            articleInfo.put("abstract", getTextWithAcronym(abs.item(0)));
         }
         NodeList link = doc.getElementsByTagName("link");
         if (link.getLength() != 0) {
             articleInfo.put("link", link.item(0).getTextContent());
         }
 
-//        // arXiv specific info
-//        String pathAsId = link.item(0).getTextContent().substring(21);
-//        articleInfo.put("path", pathAsId);
-//        Set<String> domainSet = new HashSet<String>();
-//        JSONArray subdomainAry = new JSONArray();
-//        NodeList domainList = doc.getElementsByTagName("domain");
-//        for (int i = 0; i < domainList.getLength(); i++) {
-//            Node domain = domainList.item(i);
-//            Element domainElm = (Element) domain;
-//            NodeList subList = domainElm.getElementsByTagName("subdomain");
-//            if (subList.getLength() != 0) {
-//                Node subdomain = subList.item(0);
-//                domain.removeChild(subdomain);
-//                subdomainAry.add(String.format("%s - %s",
-//                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
-//            }
-//            domainSet.add(domain.getTextContent().trim());
-//        }
-//        JSONArray domainAry = new JSONArray();
-//        for (String domain : domainSet) {
-//            domainAry.add(domain);
-//        }
-//        articleInfo.put("domains", domainAry);
-//        articleInfo.put("subdomains", subdomainAry);
+        // arXiv specific info
+        String pathAsId = link.item(0).getTextContent().substring(21);
+        articleInfo.put("path", pathAsId);
+        Set<String> domainSet = new HashSet<String>();
+        JSONArray subdomainAry = new JSONArray();
+        NodeList domainList = doc.getElementsByTagName("domain");
+        for (int i = 0; i < domainList.getLength(); i++) {
+            Node domain = domainList.item(i);
+            Element domainElm = (Element) domain;
+            NodeList subList = domainElm.getElementsByTagName("subdomain");
+            if (subList.getLength() != 0) {
+                Node subdomain = subList.item(0);
+                domain.removeChild(subdomain);
+                subdomainAry.add(String.format("%s - %s",
+                        domain.getTextContent().trim(), subdomain.getTextContent().trim()));
+            }
+            domainSet.add(domain.getTextContent().trim());
+        }
+        JSONArray domainAry = new JSONArray();
+        for (String domain : domainSet) {
+            domainAry.add(domain);
+        }
+        articleInfo.put("domains", domainAry);
+        articleInfo.put("subdomains", subdomainAry);
 
         return articleInfo;
     }
