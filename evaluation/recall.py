@@ -25,4 +25,5 @@ if __name__ == '__main__':
             recAtK[p] += recall
 
     avgRecAtK = [x / queryLen for x in recAtK]
-    print avgRecAtK
+    for k in xrange(len(avgRecAtK)):
+        print "rec_{0}:  \t{1:.4f}".format(PREC_K[k], avgRecAtK[k])

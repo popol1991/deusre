@@ -150,7 +150,7 @@
         {% if len == 0 %}
         <p class="notice">No results found.</p>
         {% else %}
-        <p class="notice">Results <b>1-10</b> of about <b>{{ resNum }}</b> for <b>{{ params['q'] }}</b>.</p>
+        <p class="notice">Results <b>{{ 10*(page-1)+1 }}-{{ (page*10) if page*10 < resNum else resNum}}</b> of about <b>{{ resNum }}</b> for <b>{{ params['q'] }}</b>.</p>
         {% endif  %}
     {% endif %}
   <section class='results'>
@@ -204,6 +204,8 @@
           </tbody>
       </table>
       <a id="toggle-{{hit.id}}" class="toggle" onclick="toggle({{hit.id}})">Show more ({{ hit.height }} rows total)</a>
+      <br>
+      {{ hit.html|safe }}
     </article>
     {% endfor %}
   </section>

@@ -19,8 +19,7 @@
         "filter": [
           "lowercase",
           "my_synonym_filter",
-          "english_possessive_stemmer",
-          "english_stemmer"
+          "english_possessive_stemmer"
         ],
         "tokenizer": "standard"
       },
