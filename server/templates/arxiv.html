@@ -151,13 +151,13 @@
         <p class="notice">No results found.</p>
         {% else %}
         <p class="notice">Results <b>{{ 10*(page-1)+1 }}-{{ (page*10) if page*10 < resNum else resNum}}</b> of about <b>{{ resNum }}</b> for <b>{{ params['q'] }}</b>.</p>
-        {% endif  %}
+        {% endif %}
     {% endif %}
   <section class='results'>
     {% for hit in hits %}
     <article class='result'>
       <!--<h2>{{ hit.id}}</h2>-->
-      <a class="caption" href="{{hit.link}}"><h2>{{ hit['short-caption'] }}</h2></a>
+      <a class="caption" href="/deusre/arxiv/doc/{{ userid }}:{{hit.link}}"><h2>{{ hit['short-caption'] }}</h2></a>
       <h3>From: {{ hit['article-title']}}</h3>
       <br>
       <table>

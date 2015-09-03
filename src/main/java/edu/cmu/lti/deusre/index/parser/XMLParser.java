@@ -79,7 +79,7 @@ public class XMLParser extends Parser {
                 break;
             }
         }
-        if (interested) {
+        if (true || interested) {
             docList = new JSONObject[tableList.length];
             for (int i = 0; i < tableList.length; i++) {
                 docList[i] = new JSONObject();
@@ -358,6 +358,7 @@ public class XMLParser extends Parser {
 
         // arXiv specific info
         String pathAsId = link.item(0).getTextContent().substring(21);
+        articleInfo.put("link", pathAsId);
         articleInfo.put("path", pathAsId);
         Set<String> domainSet = new HashSet<String>();
         JSONArray subdomainAry = new JSONArray();
