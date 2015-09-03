@@ -41,3 +41,7 @@ sup {
   color: #337ab7;
   background: #fff;
 }
+
+td.label {
+    width: 80px;
+}

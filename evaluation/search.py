@@ -64,7 +64,7 @@ def search(hits, LAMBDA, MU, weight):
                                 "objectWeight": [1,0,0,0,1,1],
                                 "propertyWeight": [0,0,1,0,0,0]
                             },
-                            "script": "multi_input_field"
+                            "script": "feature"
                         }
                     }
                 },

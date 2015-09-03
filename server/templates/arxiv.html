@@ -6,6 +6,7 @@
     <link rel='stylesheet' href='/static/css/reset.css'>
     <link rel='stylesheet' href='/static/css/index.css'>
     <link rel='stylesheet' href='/static/css/arxiv.css'>
+    <link rel='stylesheet' href='/static/css/havae.css'>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/parsley.min.js"></script>
     <script src="/static/js/angular.min.js"></script>
@@ -155,56 +156,59 @@
     {% endif %}
   <section class='results'>
     {% for hit in hits %}
-    <article class='result'>
+    <article class='result hevea'>
       <!--<h2>{{ hit.id}}</h2>-->
       <a class="caption" href="/deusre/arxiv/doc/{{ userid }}:{{hit.link}}"><h2>{{ hit['short-caption'] }}</h2></a>
-      <h3>From: {{ hit['article-title']}}</h3>
-      <br>
       <table>
-          <thead>
-            {% for row in hit.header_rows %}
-              <tr>
-                {% for header in row %}
-                <th colspan="{{ header[1] }}">
-                    {{ header[0] }}
-                  </th>
-                {% endfor %}
-              </tr>
-            {% endfor %}
-          </thead>
-        <tbody id="{{ hit.id }}-preview">
-        {% if 'data_rows' in hit %}
-            {% for row in hit.data_rows[:2] %}
-            <tr>
-                {% if row %}
-                {% for value in row %}
-                    <td id="cell" class="highlight_{{ value.highlight }}">
-                    {{ value.text }}
-                    </td>
-                {% endfor %}
-                {% endif %}
-            </tr>
-            {% endfor %}
-        {% endif %}
-        </tbody>
-          <tbody id="{{ hit.id }}-full" style="display:none">
-          {% if 'data_rows' in hit %}
-              {% for row in hit.data_rows %}
-              <tr>
-                  {% if row %}
-                    {% for value in row %}
-                        <td id="cell" class="highlight_{{ value.highlight }}">
-                        {{ value.text }}
-                        </td>
-                    {% endfor %}
-                  {% endif %}
-              </tr>
-              {% endfor %}
-          {% endif %}
-          </tbody>
+      <tr><td class="label">From:</td><td>{{ hit['article-title']}}</td></tr>
+      <tr><td class="label">Domain:</td><td>{{ ", ".join(hit['domains']) }}</td></tr>
       </table>
-      <a id="toggle-{{hit.id}}" class="toggle" onclick="toggle({{hit.id}})">Show more ({{ hit.height }} rows total)</a>
       <br>
+      <!--<table>-->
+          <!--<thead>-->
+            <!--{% for row in hit.header_rows %}-->
+              <!--<tr>-->
+                <!--{% for header in row %}-->
+                <!--<th colspan="{{ header[1] }}">-->
+                    <!--{{ header[0] }}-->
+                  <!--</th>-->
+                <!--{% endfor %}-->
+              <!--</tr>-->
+            <!--{% endfor %}-->
+          <!--</thead>-->
+        <!--<tbody id="{{ hit.id }}-preview">-->
+        <!--{% if 'data_rows' in hit %}-->
+            <!--{% for row in hit.data_rows[:2] %}-->
+            <!--<tr>-->
+                <!--{% if row %}-->
+                <!--{% for value in row %}-->
+                    <!--<td id="cell" class="highlight_{{ value.highlight }}">-->
+                    <!--{{ value.text }}-->
+                    <!--</td>-->
+                <!--{% endfor %}-->
+                <!--{% endif %}-->
+            <!--</tr>-->
+            <!--{% endfor %}-->
+        <!--{% endif %}-->
+        <!--</tbody>-->
+          <!--<tbody id="{{ hit.id }}-full" style="display:none">-->
+          <!--{% if 'data_rows' in hit %}-->
+              <!--{% for row in hit.data_rows %}-->
+              <!--<tr>-->
+                  <!--{% if row %}-->
+                    <!--{% for value in row %}-->
+                        <!--<td id="cell" class="highlight_{{ value.highlight }}">-->
+                        <!--{{ value.text }}-->
+                        <!--</td>-->
+                    <!--{% endfor %}-->
+                  <!--{% endif %}-->
+              <!--</tr>-->
+              <!--{% endfor %}-->
+          <!--{% endif %}-->
+          <!--</tbody>-->
+      <!--</table>-->
+      <!--<a id="toggle-{{hit.id}}" class="toggle" onclick="toggle({{hit.id}})">Show more ({{ hit.height }} rows total)</a>-->
+      <!--<br>-->
       {{ hit.html|safe }}
     </article>
     {% endfor %}
