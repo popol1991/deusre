@@ -4,7 +4,7 @@ import cookies
 from es import ES
 from es import ESResponse
 from flask import Flask
-from flask import request, render_template, redirect
+from flask import request, render_template, redirect, make_response
 from werkzeug import SharedDataMiddleware
 
 import logging
@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DEFAULT_SIZE = 10
-ARXIV_INDEX = "test"
+ARXIV_INDEX = "arxiv-new"
 KEY_USERID = 'cmu.table.arxiv.userid'
 
 ARXIV_FIELDS = ["article-title", "caption", "row_header_field", "footnotes", "col_header_field", "keywords", "abstract"]
@@ -22,7 +22,7 @@ app.wsgi_app = SharedDataMiddleware(app.wsgi_app,
     {'/static': '/deusre/search/static'})
 
 es = None
-config = json.load(open(sys.argv[1]))
+config = json.load(open("config.json"))
 es = ES(config['es_server'])
 
 @app.route("/deusre/arxiv/subjects.json")
@@ -84,7 +84,11 @@ def arxiv():
         else:
             hit['subject'] = ", ".join(hit['domains'])
     pages = (numRes + DEFAULT_SIZE) / DEFAULT_SIZE
-    return render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv", pages=pages, visible=min(pages, 5), page=page+1, resNum=numRes, userid=userid)
+
+    template = render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv", pages=pages, visible=min(pages, 5), page=page+1, resNum=numRes, userid=userid)
+    resp = make_response(template)
+    resp.set_cookie(KEY_USERID, userid)
+    return resp
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8082, debug=True)
