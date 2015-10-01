@@ -5,13 +5,13 @@ import random
 import time
 import copy
 import popol
-from es import ES, ESResponse
+from es import ES
 from elasticsearch import Elasticsearch
 from learnweight import evaluate
 
 FOLD = 2
 
-INDEX = "test_1"
+INDEX = "arxiv-cs-expand"
 QUERY_FILE = "query.json"
 
 if '-o' in sys.argv:
@@ -19,7 +19,7 @@ if '-o' in sys.argv:
 else:
     OUTPUT = 'result.tmp'
 
-FIELDS = ['article-title', 'caption', "row_header_field", "footnotes", "col_header_field", "keywords"]
+FIELDS = ['article-title', 'caption', "row_header_field", "footnotes", "col_header_field", "keywords", "expand"]
 FIELD_NUM = len(FIELDS)
 BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1], # neuron
                  [1, 1, 2, 5, 5, 1],
@@ -60,19 +60,21 @@ def search(hits, LAMBDA, MU, weight):
                                 "property": [] if len(prop) == 0 else [t['token'] for t in es.indices.analyze(body=prop, index=INDEX, field="caption")['tokens']],
                                 "lambda": LAMBDA,
                                 "mu": MU,
-                                "topicWeight": [1,1,0,1,1,1],
-                                "objectWeight": [1,0,0,0,1,1],
-                                "propertyWeight": [0,0,1,0,0,0]
+                                "topicWeight": [1,1,0,1,1,1,0],
+                                "objectWeight": [1,0,0,0,1,1,1],
+                                "propertyWeight": [0,0,1,0,0,0,0]
                             },
-                            "script": "feature"
+                            #"script": "multi_input_field"
+                            "script": "multi_input_field"
+                            #"script": "feature"
                         }
                     }
                 },
-                "size" : 200
+                "size" : 50
             }
             rank = es.search(index=INDEX, doc_type="table", body=body)
         else:
-            rank = esService.search_with_weight(query, BEST_WEIGHT[2], INDEX, size=50, type="cross_fields", highlight=False, fields=FIELDS)
+            rank = esService.search_with_weight(query, [1]*7, INDEX, size=50, type="cross_fields", highlight=False, fields=FIELDS)
 
         #doclist = ESResponse(rank).rerank({})
         doclist = rank['hits']['hits']
