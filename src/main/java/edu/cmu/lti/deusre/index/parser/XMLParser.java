@@ -34,7 +34,8 @@ public class XMLParser extends Parser {
     private Generator generator;
 
     public XMLParser() throws IOException {
-        this.extension = "xml";
+//       this.extension = "xml";
+        this.extension = "exp";
         this.generator = new Generator();
         if (sdetector == null) {
             sdetector = initSentDetector();
@@ -67,18 +68,22 @@ public class XMLParser extends Parser {
     @Override
     public JSONObject[] parse(Path path) {
         Document doc = getDocument(path); // get XML Document instance
+        if (doc == null) {
+            return null;
+        }
 
         JSONObject articleInfo = getArticleInfo(doc);
         JSONObject[] tableList = getTableList(doc);
         JSONObject[] docList = null;
-        JSONArray domains = (JSONArray) articleInfo.get("domains");
         boolean interested = false;
-        for (int i = 0; i < domains.size(); i++) {
-            if (((String) domains.get(i)).equals("Computer Science")) {
-                interested = true;
-                break;
-            }
-        }
+
+//        JSONArray domains = (JSONArray) articleInfo.get("domains");
+//        for (int i = 0; i < domains.size(); i++) {
+//            if (((String) domains.get(i)).equals("Computer Science")) {
+//                interested = true;
+//                break;
+//            }
+//        }
         if (true || interested) {
             docList = new JSONObject[tableList.length];
             for (int i = 0; i < tableList.length; i++) {
@@ -119,6 +124,12 @@ public class XMLParser extends Parser {
         if (nList.getLength() != 0) {
             String html = nList.item(0).getTextContent();
             retTable.put("html", html);
+        }
+        // expanded
+        nList = doc.getElementsByTagName("expand");
+        if (nList.getLength() != 0) {
+            String expand = nList.item(0).getTextContent();
+            retTable.put("expand", expand);
         }
         // caption
         nList = doc.getElementsByTagName("caption");
@@ -183,12 +194,18 @@ public class XMLParser extends Parser {
             retTable.put("citations", citeAry);
         }
         // headers and rows
-        String headerField = getHeadersFromXml(doc, "headers", "header");
-        retTable.put("col_header_field", headerField);
-//        retTable.put("headers", getHeadersFromXml(doc, "headers", "header");
+        Object[] headerObj = getHeadersFromXml(doc, "headers", "header");
+        retTable.put("col_header_field", headerObj[0]);
         Object[] rowObject = getDataRowsFromXml(doc);
         retTable.put("row_header_field", rowObject[0]);
         retTable.put("data", rowObject[1]);
+        int headerHeight = ((int) headerObj[1]);
+        int totalRow = headerHeight + ((int) rowObject[2]);
+        // query independent features
+        retTable.put("height", totalRow);
+        retTable.put("width", rowObject[3]);
+        retTable.put("hasHeader", headerHeight > 0 ? 1 : 0);
+
         retTable.put("column_stats", getColumnStats(doc));
         return retTable;
     }
@@ -247,11 +264,13 @@ public class XMLParser extends Parser {
         StringBuilder sb = new StringBuilder();
         JSONObject retRows = new JSONObject();
         NodeList nList = doc.getElementsByTagName("row");
+        int colNum = 0;
         for (int i = 0; i < nList.getLength(); i++) {
             Element rowNode = (Element) nList.item(i);
             JSONObject dataRow = new JSONObject();
             JSONArray valueAry = new JSONArray();
             NodeList cellList = rowNode.getElementsByTagName("value");
+            colNum = cellList.getLength();
             if (cellList.getLength() > 0) {
                 // assume the first and only the first value of each data row is the row header
                 String rowHeader = cellList.item(0).getTextContent();
@@ -280,7 +299,7 @@ public class XMLParser extends Parser {
             }
             retRows.put("data_" + i, dataRow);
         }
-        return new Object[]{expandAcronyms(sb.toString()), retRows.toJSONString()};
+        return new Object[]{expandAcronyms(sb.toString()), retRows.toJSONString(), nList.getLength(), colNum};
     }
 
     private String expandAcronyms(String text) {
@@ -305,7 +324,7 @@ public class XMLParser extends Parser {
         return retStr;
     }
 
-    private String getHeadersFromXml(Element doc, String rowTag, String cellTag) {
+    private Object[] getHeadersFromXml(Element doc, String rowTag, String cellTag) {
         StringBuilder sb = new StringBuilder();
         NodeList nList = doc.getElementsByTagName(rowTag);
         for (int i = 0; i < nList.getLength(); i++) {
@@ -323,17 +342,20 @@ public class XMLParser extends Parser {
                 sb.append(NEWLINE);
             }
         }
-        return expandAcronyms(sb.toString());
+        return new Object[] {expandAcronyms(sb.toString()), nList.getLength()};
     }
 
     private JSONObject getArticleInfo(Document doc) {
         JSONObject articleInfo = new JSONObject();
-        NodeList metaList = doc.getElementsByTagName("metadata").item(0).getChildNodes();
-        for (int i = 0; i < metaList.getLength(); i++) {
-            Node tag = metaList.item(i);
-            String nodeName = tag.getNodeName();
-            if (!nodeName.equals("#text")) {
-                articleInfo.put(nodeName, tag.getTextContent());
+        NodeList metaList = doc.getElementsByTagName("metadata");
+        if (metaList.getLength() > 0) {
+            metaList = metaList.item(0).getChildNodes();
+            for (int i = 0; i < metaList.getLength(); i++) {
+                Node tag = metaList.item(i);
+                String nodeName = tag.getNodeName();
+                if (!nodeName.equals("#text")) {
+                    articleInfo.put(nodeName, tag.getTextContent());
+                }
             }
         }
         NodeList sourceList = doc.getElementsByTagName("source");

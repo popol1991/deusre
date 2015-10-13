@@ -12,14 +12,16 @@ from learnweight import evaluate
 FOLD = 2
 
 INDEX = "arxiv-cs-expand"
-QUERY_FILE = "query.json"
+#QUERY_FILE = "query.json"
+
+QUERY_FILE = "./randomQuerySeg-CS/query_5.json"
 
 if '-o' in sys.argv:
     OUTPUT = sys.argv[sys.argv.index('-o') + 1]
 else:
     OUTPUT = 'result.tmp'
 
-FIELDS = ['article-title', 'caption', "row_header_field", "footnotes", "col_header_field", "keywords", "expand"]
+FIELDS = ['article-title', 'caption', "row_header_field", "footnotes", "col_header_field", "keywords"]
 FIELD_NUM = len(FIELDS)
 BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1], # neuron
                  [1, 1, 2, 5, 5, 1],
@@ -48,33 +50,51 @@ def search(hits, LAMBDA, MU, weight):
         prop = hits[idx]['property']
 
         if '--script' in sys.argv:
+            tokens = [t['token'] for t in es.indices.analyze(body=query, index=INDEX, field="caption")['tokens']]
+            topicTokens = [] if len(topic) == 0 else [t['token'] for t in es.indices.analyze(body=topic, index=INDEX, field="caption")['tokens']]
+            objTokens = [] if len(obj) == 0 else [t['token'] for t in es.indices.analyze(body=obj, index=INDEX, field="caption")['tokens']]
             body = {
                 "query" : {
-                    "function_score": {
-                        "script_score" : {
-                            "params" : {
-                                "qid" : qid,
-                                "query": [t['token'] for t in es.indices.analyze(body=query, index=INDEX, field="caption")['tokens']],
-                                "topic": [] if len(topic) == 0 else [t['token'] for t in es.indices.analyze(body=topic, index=INDEX, field="caption")['tokens']],
-                                "object": [] if len(obj) == 0 else [t['token'] for t in es.indices.analyze(body=obj, index=INDEX, field="caption")['tokens']],
-                                "property": [] if len(prop) == 0 else [t['token'] for t in es.indices.analyze(body=prop, index=INDEX, field="caption")['tokens']],
-                                "lambda": LAMBDA,
-                                "mu": MU,
-                                "topicWeight": [1,1,0,1,1,1,0],
-                                "objectWeight": [1,0,0,0,1,1,1],
-                                "propertyWeight": [0,0,1,0,0,0,0]
-                            },
-                            #"script": "multi_input_field"
-                            "script": "multi_input_field"
-                            #"script": "feature"
-                        }
+                    "bool": {
+                        "should": [
+                            {
+                                "function_score": {
+                                    "script_score" : {
+                                        "params" : {
+                                            "qid" : qid,
+                                            "query": tokens,
+                                            "topic": topicTokens,
+                                            "object": objTokens,
+                                            "property": [] if len(prop) == 0 else [t['token'] for t in es.indices.analyze(body=prop, index=INDEX, field="caption")['tokens']],
+                                            "lambda": LAMBDA,
+                                            "mu": MU,
+                                            "topicWeight": [1,1,0,1,1,1,0],
+                                            "objectWeight": [1,0,0,0,1,1,1],
+                                            "propertyWeight": [0,0,1,0,0,0,0]
+                                        },
+                                        #"script": "multi_input_field"
+                                        #"script": "term_centric_field"
+                                        "script": "feature"
+                                    }
+                                }
+                            }
+                        ]
                     }
                 },
-                "size" : 50
+                "size" : 100
             }
+            #if len(objTokens) > 1:
+                #phrase_body = {
+                    #"multi_match": {
+                        #"query": obj,
+                        #"fields": ["article-title","caption","abstract","footnotes","citations"],
+                        #"type": "phrase"
+                    #}
+                #}
+                #body["query"]["bool"]["should"].append(phrase_body)
             rank = es.search(index=INDEX, doc_type="table", body=body)
         else:
-            rank = esService.search_with_weight(query, [1]*7, INDEX, size=50, type="cross_fields", highlight=False, fields=FIELDS)
+            rank = esService.search_with_weight(query, BEST_WEIGHT[1], INDEX, size=50, type="cross_fields", highlight=False, fields=FIELDS)
 
         #doclist = ESResponse(rank).rerank({})
         doclist = rank['hits']['hits']
