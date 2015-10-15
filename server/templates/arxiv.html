@@ -67,7 +67,6 @@
         function loadDomain() {
             var query = window.location.search.substring(1);
             var vars = query.split('&');
-            var subdomain = null;
             for (var i = 0; i < vars.length; i++) {
                 var pair = vars[i].split('=')
                 if (pair[0] == 'domain') {
@@ -75,15 +74,8 @@
                     $('select#domain option').filter(function() {
                         return $(this).text() == domain;
                     }).prop('selected', true);
-                    setSubdomain(domain);
-                };
-                if (pair[0] == 'subdomain') {
-                    subdomain = pair[1].replace(/\+/g, " ");
                 };
             };
-            $('select#subdomain option').filter(function() {
-                return $(this).text() == subdomain;
-            }).prop('selected', true);
         };
         function mkSpaceForFilters() {
             var filterList = $('.filter_item');
@@ -110,6 +102,7 @@
       <form id='query' data-parsley-validate action="./submit" method="get" autocomplete="off" onsubmit="submitForms()">
         <input type="submit" class="search-button" value="Search">
         <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
+        <label>Domain:</label>
         <select name="domain" id="domain">
                 <option value="all">All Domains</option>
                 <option value="Physics">Physics</option>
@@ -117,8 +110,6 @@
                 <option value="Mathematics">Mathematics</option>
                 <option value="Quantitative Biology">Quantitative Biology</option>
                 <option value="Statistics">Statistics</option>
-        </select>
-        <select name="subdomain" id="subdomain" disabled>
         </select>
         <button class="add-filter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button>
       </form>
@@ -149,7 +140,18 @@
 <main class="results-container">
     {% if 'q' in params %}
         {% if len == 0 %}
-        <p class="notice">No results found.</p>
+        <p class="notice">No tabular results found.  Show article results below.</p>
+        <section class='results'>
+            {% for doc in fulltextlist %}
+            <article class='result'>
+                <a class="caption" href="{{doc.link}}">{{ doc.title }}</a>
+                <table>
+                <tr><td class="label">Authors:</td><td>{{ doc.author }}</td></tr>
+                </table>
+                <p class="summary">{{ doc.summary }}</p>
+            </article>
+            {% endfor %}
+        </section>
         {% else %}
         <p class="notice">Results <b>{{ 10*(page-1)+1 }}-{{ (page*10) if page*10 < resNum else resNum}}</b> of about <b>{{ resNum }}</b> for <b>{{ params['q'] }}</b>.</p>
         {% endif %}
@@ -164,51 +166,6 @@
       <tr><td class="label">Domain:</td><td>{{ ", ".join(hit['domains']) }}</td></tr>
       </table>
       <br>
-      <!--<table>-->
-          <!--<thead>-->
-            <!--{% for row in hit.header_rows %}-->
-              <!--<tr>-->
-                <!--{% for header in row %}-->
-                <!--<th colspan="{{ header[1] }}">-->
-                    <!--{{ header[0] }}-->
-                  <!--</th>-->
-                <!--{% endfor %}-->
-              <!--</tr>-->
-            <!--{% endfor %}-->
-          <!--</thead>-->
-        <!--<tbody id="{{ hit.id }}-preview">-->
-        <!--{% if 'data_rows' in hit %}-->
-            <!--{% for row in hit.data_rows[:2] %}-->
-            <!--<tr>-->
-                <!--{% if row %}-->
-                <!--{% for value in row %}-->
-                    <!--<td id="cell" class="highlight_{{ value.highlight }}">-->
-                    <!--{{ value.text }}-->
-                    <!--</td>-->
-                <!--{% endfor %}-->
-                <!--{% endif %}-->
-            <!--</tr>-->
-            <!--{% endfor %}-->
-        <!--{% endif %}-->
-        <!--</tbody>-->
-          <!--<tbody id="{{ hit.id }}-full" style="display:none">-->
-          <!--{% if 'data_rows' in hit %}-->
-              <!--{% for row in hit.data_rows %}-->
-              <!--<tr>-->
-                  <!--{% if row %}-->
-                    <!--{% for value in row %}-->
-                        <!--<td id="cell" class="highlight_{{ value.highlight }}">-->
-                        <!--{{ value.text }}-->
-                        <!--</td>-->
-                    <!--{% endfor %}-->
-                  <!--{% endif %}-->
-              <!--</tr>-->
-              <!--{% endfor %}-->
-          <!--{% endif %}-->
-          <!--</tbody>-->
-      <!--</table>-->
-      <!--<a id="toggle-{{hit.id}}" class="toggle" onclick="toggle({{hit.id}})">Show more ({{ hit.height }} rows total)</a>-->
-      <!--<br>-->
       {{ hit.html|safe }}
     </article>
     {% endfor %}
@@ -221,10 +178,6 @@
 
 <!-- Load resources -->
 <script>
-$("#domain").change(function() {
-    var domain = this.value;
-    setSubdomain(domain);
-});
 function submitForms() {
     $('#filter-form :input').not(':submit').clone().hide().appendTo('#query');
 };

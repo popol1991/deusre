@@ -1,11 +1,17 @@
 select#domain {
-    margin-left:2px;
+    margin-left:4px;
+    width: 300px;
     float: left;
 }
 
-select#subdomain {
-    width: 406px;
-    float: left;
+.summary {
+  margin-top: 10px;
+}
+
+label {
+  margin-left: 2px;
+  color: white;
+  float: left;
 }
 
 a.caption {

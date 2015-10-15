@@ -1,8 +1,10 @@
 import sys
+import urllib
 import time
 import datetime
 import json
 import cookies
+import xml.etree.ElementTree as ET
 from es import ES
 from es import ESResponse
 from flask import Flask
@@ -16,6 +18,14 @@ logger = logging.getLogger(__name__)
 DEFAULT_SIZE = 10
 ARXIV_INDEX = "arxiv-new"
 KEY_USERID = 'cmu.table.arxiv.userid'
+
+ARXIV_API = 'http://export.arxiv.org/api/query?search_query=all:{0}&start={1}&max_results={2}'
+ARXIV_XML_PREFIX = '{http://www.w3.org/2005/Atom}'
+ARXIV_XML_ID = "".join([ARXIV_XML_PREFIX, "id"])
+ARXIV_XML_TITLE = "".join([ARXIV_XML_PREFIX, "title"])
+ARXIV_XML_AUTHOR = "".join([ARXIV_XML_PREFIX, "author"])
+ARXIV_XML_NAME = "".join([ARXIV_XML_PREFIX, "name"])
+ARXIV_XML_SUMMARY = "".join([ARXIV_XML_PREFIX, "summary"])
 
 ARXIV_FIELDS = ["article-title", "caption", "row_header_field", "footnotes", "col_header_field", "keywords", "abstract"]
 
@@ -54,12 +64,10 @@ def arxiv():
         return render_template('arxiv.html', len=0, hits=[], query="", params={}, dataset="elsevier", pages=0, visible=0, page=0, userid=userid)
     logger.info("[{0}]\t_QUERY: user={1} ip={2} query={3}".format(getTimestamp(), userid, request.remote_addr, json.dumps(params)))
     # get domain
-    domainlist = [params[key] for key in params if key.startswith('subdomain')]
-    if len(domainlist) == 0 or domainlist[0] == 'all':
-        if 'domain' in params:
-            domainlist = [params['domain']]
-        else:
-            domainlist.append('all')
+    if 'domain' in params:
+        domainlist = [params['domain']]
+    else:
+        domainlist.append('all')
     # get page
     if 'page' in params:
         page = int(params['page']) - 1
@@ -87,13 +95,26 @@ def arxiv():
     res = res.rerank(params)
     logger.info("[{0}]\tRendering...".format(getTimestamp()))
     for hit in res:
-        if len(hit['subdomains']) != 0:
-            hit['subject'] = ", ".join(hit['subdomains'])
-        else:
-            hit['subject'] = ", ".join(hit['domains'])
+        hit['subject'] = ", ".join(hit['domains'])
     pages = (numRes + DEFAULT_SIZE) / DEFAULT_SIZE
 
-    template = render_template('arxiv.html', hits=res, len=len(res), params=params, dataset="arxiv", pages=pages, visible=min(pages, 5), page=page+1, resNum=numRes, userid=userid)
+    resNum = len(res)
+    fullTextList = []
+    if resNum == 0:
+        # get arXiv full text result here
+        url = ARXIV_API.format(params['q'], 0, DEFAULT_SIZE)
+        data = urllib.urlopen(url).read()
+        root = ET.fromstring(data)
+        for entry in root.iter(ARXIV_XML_PREFIX + "entry"):
+            link = entry.find(ARXIV_XML_ID).text
+            title = entry.find(ARXIV_XML_TITLE).text.strip()
+            author = entry.find(ARXIV_XML_AUTHOR)
+            names = ", ".join([name.text for name in author.findall(ARXIV_XML_NAME)])
+            summary = entry.find(ARXIV_XML_SUMMARY).text.strip()
+            fullTextList.append(dict(link=link, title=title, author=names, summary=summary))
+
+    print fullTextList
+    template = render_template('arxiv.html', hits=res, len=resNum, params=params, dataset="arxiv", pages=pages, visible=min(pages, 5), page=page+1, resNum=numRes, userid=userid, fulltextlist=fullTextList)
     resp = make_response(template)
     resp.set_cookie(KEY_USERID, userid)
     return resp
