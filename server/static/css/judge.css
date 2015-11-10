@@ -8,20 +8,20 @@
 }
 .instruction {
     position: absolute;
-    top: 0px;
-    left: 138px;
+    top: -20px;
+    left: 20px;
 }
 .logout {
     position: absolute;
     top: 57px;
-    left: 637px;
+    left: 700px;
 }
 .rel-scales {
     margin-top: 5px;
 }
 .rel-radio {
-    margin-left: 10px;
-    margin-right: 5px;
+    margin-left: 8px;
+    margin-right: 3px;
 }
 .rel-mark {
     width: 15px;
@@ -74,4 +74,20 @@ table.meta {
     font-size: 18px;
     line-height: 16px;
     padding: 8px 10px;
+}
+
+label {
+  margin-left: 2px;
+  color: white;
+  float: left;
+}
+
+select#domain {
+    margin-left:4px;
+    width: 300px;
+    float: left;
+}
+
+.results-container {
+    padding-top: 64px;
 }

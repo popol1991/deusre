@@ -5,38 +5,76 @@
    <script src='/static/js/jquery.tooltipster.min.js'></script>
    <link rel='stylesheet' href='/static/css/judge.css'>
    <link rel='stylesheet' href='/static/css/tooltipster.css'>
+   <link rel='stylesheet' href='/static/css/LaTeXML.css'>
+   <link rel='stylesheet' href='/static/css/ltx-article.css'>
+   <link rel='stylesheet' href='/static/css/ltx-svjour.css'>
    <script type="text/javascript">
+       function completed() {
+          var i = 0;
+          var reldict = {};
+          for (;i<{{len}};i++) {
+              var rel = $("input[name=rel_"+i+"]:checked").val();
+              if (typeof rel == 'undefined') {
+                  return null;
+              }
+              var tableId = $("span#rel_"+i).text();
+              reldict[tableId] = rel;
+          }
+          return reldict;
+       }
+       function logging(msg) {
+            $.ajax({
+                    method: "POST",
+                    url: "/deusre/judge/log",
+                    data: { "message": msg }
+            }).done(function(msg) {
+            });
+       };
        function reminder() {
-           return "You have unsaved results.";
+           var url = window.location.pathname;
+           var param = window.location.search;
+           var complete = completed();
+           alert(complete);
+           if (url.endsWith("submit") && param.length != 0 && complete == null) {
+             return "You have unsaved results.";
+           } else {
+             return null;
+           }
        };
        $(document).ready(function() {
            $('.tooltip').tooltipster({
                content: $('<style>td {padding: 2px 2px 2px 5px;} table {margin-top: 8px;}</style><center><b>Scales for Relevance Judgements</b><center><table style="font-size:14px;"><col width="135px"><tr><td style="vertical-align:middle;">Key Result:</td><td>This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine,</td></tr><tr><td style="vertical-align:middle;">Highly Relevant:</td><td>The content of this table provides substantial information on the topic,</td></tr><tr><td style="vertical-align:middle;">Relevant:</td><td>The content of this table provides some information on the topic, which may be minimal,</td></tr><tr><td style="vertical-align:middle;">Not Relevant:</td><td>The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query,</td></tr><tr><td style="vertical-align:middle;">Broken:</td><td>This table is broken or not readable.</td></tr><table>'),
                theme: 'my-custom-theme'
            });
-           var url = window.location.pathname;
-           if (url.endsWith("submit")) {
-               window.onbeforeunload = reminder;
-               window.onunload = reminder;
-           }
+           window.onbeforeunload = reminder;
+           window.onunload = reminder;
        });
    </script>
 </head>
 
 <body>
    <!-- Title and search box -->
-   <!-- Title and search box -->
    <header class="jumbotron">
-     <h1 class="neuro-title"><a href="/deusre/judge">Neuroscience<br>Table Search</a></h1>
+     <h1 class="neuro-title"><a href="/deusre/judge">Table Search</a></h1>
       <div class="search-box-container">
           <form id='query' data-parsley-validate action="./submit" method="get" autocomplete="off" onsubmit="submitForms()">
             <input type="submit" class="search-button" value="Search">
             <input type='text' name="q" class="search-box" placeholder="Keywords" value="{{ params['q'] }}" autofocus>
+            <label>Domain:</label>
+            <select name="domain" id="domain">
+                    <option value="all">All Domains</option>
+                    <option value="Physics">General Physics</option>
+                    <option value="Astrophysics">Astrophysics</option>
+                    <option value="Condensed Matter">Condensed Matter</option>
+                    <option value="High Energy Physics">High Energy Physics</option>
+                    <option value="Nonlinear Sciences">Nonlinear Sciences</option>
+                    <option value="Nuclear Experiment">Nuclear</option>
+                    <option value="Quantum Physics">Quantum Physics</option>
+            </select>
           </form>
       </div>
      <div class="info">
-       <a href="http://boston.lti.cs.cmu.edu/eager/deusre/about/neuroelectro.html"><center>About the dataset</center></a>
-       <a class="instruction" href="judge/description">Instruction</a>
+       <a class='instruction' href="judge/description">Instruction</a>
      </div>
         <form id='filter-form' data-parley-validate data-ng-controller='filterCtrl'>
             <table class="filter">
@@ -70,18 +108,24 @@
          {% for hit in hits %}
          <article class='result'>
 
-            {% include 'table.html' %}
+            <h2><a href="{{ hit.link }}" target="_blank" onclick='logging("clicked caption {{hit._id}}")'>{{ hit['caption'] }}</a></h2>
+            <table>
+            <tr><td class="label">From:</td><td>{{ hit['article-title']}}</td></tr>
+            <tr><td class="label">Domain:</td><td>{{ ", ".join(hit['domains']) }}</td></tr>
+            </table>
+            <br>
+            {{ hit.html | safe}}
 
             <br>
             <!-- Radio button for judgements -->
             <div class="rel-scales">
-                <b>Degree of Relevance: </b>
-                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=4>Key Result
-                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=3>Highly Relevant 
-                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=2>Relevant 
-                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=1>Not Relevant 
-                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=0>Broken 
                 <image class="tooltip rel-mark" src="/static/image/question.jpg" />
+                <b>Degree of Relevance: </b>
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=4 onclick='logging("clicked radio 4 for table {{hit._id}}")'>Key Result
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=3 onclick='logging("clicked radio 3 for table {{hit._id}}")'>Highly Relevant 
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=2 onclick='logging("clicked radio 2 for table {{hit._id}}")'>Relevant 
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=1 onclick='logging("clicked radio 1 for table {{hit._id}}")'>Not Relevant 
+                <input class="rel-radio" type="radio" name="rel_{{hit.id}}" value=0 onclick='logging("clicked radio 0 for table {{hit._id}}")'>Broken 
                 <span id="rel_{{hit.id}}" style="display:none">{{hit._id}}</span>
             </div>
          </article>
@@ -99,18 +143,12 @@
           $('#filter-form :input').not(':submit').clone().hide().appendTo('#query');
       };
       function save(next) {
-          var i = 0;
-          var reldict = {};
-          for (;i<{{len}};i++) {
-              var rel = $("input[name=rel_"+i+"]:checked").val();
-              if (typeof rel == 'undefined') {
-                  alert("You have unjudged tables for this query.")
-                  return;
-              }
-              var tableId = $("span#rel_"+i).text();
-              reldict[tableId] = rel;
-          }
           var judge = {};
+          var reldict = completed();
+          if (reldict == null) {
+              alert("You have unjudged tables for this query.")
+              return;
+          }
           judge['query'] = $('form').serializeArray();
           judge['prel'] = reldict;
           // post result to server here
