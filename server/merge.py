@@ -1,7 +1,8 @@
 from random import shuffle
 from es import ESResponse
 
-MAX_POOL_SIZE = 50
+#MAX_POOL_SIZE = 100
+MAX_POOL_SIZE = 5
 
 def getpid(docid):
     pid = ".".join(docid.split('.')[:-1])

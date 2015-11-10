@@ -9,16 +9,12 @@ SPLIT = "$##$"
 NEWLINE = "#$$#"
 ACRONYM_SPLIT = " $%%$ "
 
-FIELDS = ["article-title", "abstract", "caption", "citations", "data.data_*.row_header", "footnotes", "headers.header_*", "headings",
-          "keywords"]
 CELL_FEATURE = ["magnitude", "mainValue", "precision", "pvalue"]
 COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accuracy", "magnitude"]
 
 #NEURO_FIELDS = ["caption", "header_row_*.header_*", "data_row_*.svalue_*", "footnote_*", "keyword_0", "article-title"]
 #FIELD_PTN = [re.compile(p) for p in [r"caption", r"header_row_\d+\.header_\d+", r"data_row_\d+\.svalue_\d+", r"footnote_\d+", r"keyword_0", r"article-title"]]
 
-NEURO_FIELDS = ["article-title", "caption", "data.data_*.row_header", "footnotes", "headers.header_*", "keywords"]
-MLT_FIELDS = ["article-title", "caption", "keywords","footnotes", "headers.header_*", "data.data_*.row_header"]
 FIELD_PTN = [re.compile(p) for p in [r"article-title", r"caption", r"data.data_\d+\.row_header", r"footnotes", r"headers\.header_\d+", r"keywords"]]
 
 class ES():
@@ -60,7 +56,7 @@ class ES():
         res = self.es.search(index=index, body=query)
         return ESResponse(res)
 
-    def mk_text_body(self, q, page, size, index, highlight=True, fields=FIELDS):
+    def mk_text_body(self, q, page, size, index, fields, highlight=True):
         query = {
             "query": {
                 "multi_match": {
@@ -140,30 +136,30 @@ class ES():
             body['highlight'] = dict(fields=fields)
         return body
 
-    def get_feature_vector(self, query, index, doc_type='table', field=NEURO_FIELDS):
+    def get_feature_vector(self, query, index, field, doc_type='table'):
         body = self.mkbody(query, field, highlight=True)
 
         # search
         res = self.es.search(index=index, doc_type=doc_type, body=body, timeout=50)
         return self.get_vector(res)
 
-    def get_vector(self, res):
+    def get_vector(self, res, field):
         hits = res['hits']['hits']
-        nummatched = [0] * len(NEURO_FIELDS)
+        nummatched = [0] * len(field)
         total = 0
         for hit in hits:
             if 'highlight' in hit:
                 hilights = hit['highlight']
                 for f in hilights:
                     total += len(hilights[f])
-                    for i in range(len(NEURO_FIELDS)):
+                    for i in range(len(field)):
                         pattern = FIELD_PTN[i]
                         if pattern.search(f) is not None:
                             nummatched[i] += len(hilights[f])
                             break
         return [w for w in nummatched]
 
-    def search_with_weight(self, query, weight, index, size, doc_type='table', type="best_fields", highlight=True, filter=None, operator="or", fields=NEURO_FIELDS):
+    def search_with_weight(self, query, weight, index, size, fields, doc_type='table', type="best_fields", highlight=True, filter=None, operator="or"):
         field = ["{0}^{1}".format(fields[i], weight[i]) for i in range(len(weight))]
         body = self.mkbody(query, field, type=type, size=size, operator=operator)
         if filter is not None:
@@ -184,7 +180,7 @@ class ES():
         res = self.es.search(index=index, doc_type=doc_type, body=body)
         return res
 
-    def search_with_term_weight(self, weight_str, index, bestWeight, filter):
+    def search_with_term_weight(self, weight_str, index, bestWeight, filter, fields):
         clauses = []
         terms = weight_str.split('\n')
         for term in terms:
@@ -192,7 +188,7 @@ class ES():
             term = termweight[0]
             weights = termweight[1:7]
             weights = [int(100*float(w))/100 for w in weights]
-            field = ["{0}^{1}".format(MLT_FIELDS[i], weights[i]*bestWeight[i]) for i in range(len(weights)) if weights[i] != 0]
+            field = ["{0}^{1}".format(fields[i], weights[i]*bestWeight[i]) for i in range(len(weights)) if weights[i] != 0]
             if field:
                 clauses.append({
                     "multi_match" : {

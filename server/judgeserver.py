@@ -1,3 +1,4 @@
+import logging
 import pickle
 import json
 from assessments import Assessment
@@ -12,13 +13,23 @@ ACCOUNT_FILE = ".account"
 SURVEY_FILE = ".survey"
 JUDGE_INDEX    = 'judge'
 DEFAULT_SIZE   = 30
-BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1], # neuron
-                 [1, 1, 2, 5, 5, 1]] # property
+#BEST_WEIGHT    = [[5, 1, 1, 1, 1, 1, 1], # neuron
+                 #[1, 1, 2, 5, 5, 1, 1]] # property
+
+BEST_WEIGHT = [
+    [1,0,0,0,0,1,0],
+    [0,1,0,0,0,0,0],
+    [0,0,1,0,0,0,0],
+    [0,0,0,1,0,0,0],
+    [0,0,0,0,1,0,0],
+    [0,0,0,0,0,0,1],
+    [0,1,1,0,1,0,0]
+]
 CELL_FEATURE   = ["magnitude", "mainValue", "precision", "pvalue"]
 COLUMN_FEATURE = ["int_ratio", "real_ration", "mean", "stddev", "range", "accuracy", "magnitude"]
 FILTER_LIST    = CELL_FEATURE + COLUMN_FEATURE
 
-FIELDS = ["article-title", "caption", "data.data_*.row_header", "footnotes", "headers.header_*", "keywords"]
+ARXIV_FIELDS = ["article-title", "caption", "row_header_field", "footnotes", "col_header_field", "abstract", "citations"]
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "BLAHBLAHBLAH"
@@ -30,13 +41,30 @@ DEFAULT_FILTERS = None
 es = None
 assessed = None
 
+# initialize logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+formatter = logging.Formatter('%(name)s - %(asctime)s - %(levelname)s - %(message)s')
+fh = logging.FileHandler('judge.log')
+fh.setLevel(logging.INFO)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+logger.info('started')
+
 def build_app(config_path):
     global DEFAULT_INDEX
     global DEFAULT_FILTERS
+    global JUDGE_INDEX
     global es
     global assessed
     config = json.load(open(config_path))
     es = ES(config['es_server'])
+    JUDGE_INDEX = config['judgeIndex']
     assessed = Assessment(config)
     DEFAULT_INDEX = config['index']
     if 'filter' in config:
@@ -167,16 +195,19 @@ def login():
             return redirect(url_for('judge'))
     # login
     userid = request.form['username']
+    logger.info("User {0} trying to login".format(userid))
     password = request.form['password']
     user = User.get(userid)
     if user:
         if user[1] == password:
             login_user(User(userid, password))
             return render_template("entry.html")
+    logger.info("User {0} login successfully".format(userid))
     return render_template("login.html")
 
 @app.route('/deusre/judge/logout')
 def logout():
+    logger.info("User: {0} logging out".format(current_user.id))
     logout_user()
     return redirect(url_for('login'))
 
@@ -188,16 +219,28 @@ def judge_body(judge):
         "timestamp" : datetime.utcnow()
     }
 
+@app.route("/deusre/judge/log", methods=["POST"])
+@login_required
+def log():
+    """Log whatever message received from clients."""
+    userid = current_user.id
+    message = request.form['message']
+    logger.info("User {0} Client: ".format(userid) + message)
+    return 'succeed'
+
 @app.route("/deusre/judge/result", methods=["POST"])
 @login_required
 def result():
+    logger.info("Result submitted from User {0}".format(current_user.id))
     params = request.form
     if len(params) != 1:
         return "error" #TODO: something is wrong with the posted data
     judge = params.keys()[0]
     print judge
     body = judge_body(judge)
+    logger.info("Sending result to ES")
     es.index(index=JUDGE_INDEX, doc_type="judge", body=body)
+    logger.info("Result indexed in ES")
     # if validate result
     return "succeed"
 
@@ -238,29 +281,40 @@ def judge():
 
     params = request.args
     if len(params) == 0:
+        logger.info("Received empty query")
         return render_template("judge.html", hits=[], len=0, params=None)
+    logger.info("Received query: {0} from user {1}".format(str(params), userid))
     return pool(params)
 
 def pool(params):
+    logger.info("Pooling result...")
     query = params['q']
+    domain = params['domain']
+    domain_filter = [domain] if domain != 'all' else None
     if len(query) == 0:
         init_rank = es.match_all(0, DEFAULT_SIZE, index=DEFAULT_INDEX)
         res = init_rank.rerank(params)
     else:
         #init_rank = es.text_search(query, 0, DEFAULT_SIZE, index=DEFAULT_INDEX, highlight=False)
-        rank_simple = es.search_with_weight(query, [1]*6, DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
+        rank_simple = es.search_with_weight(query, [1]*len(ARXIV_FIELDS), DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=domain_filter, fields=ARXIV_FIELDS, highlight=False)
         # search with neuron best weight and best_fields type
-        rank_neuro_best = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
+        #rank_neuro_best = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=domain_filter, fields=ARXIV_FIELDS, highlight=False)
         # search with property best weight and best_fields type
-        rank_prop_best = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
+        #rank_prop_best = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="best_fields", filter=domain_filter, fields=ARXIV_FIELDS, highlight=False)
         # search with neuron best weight and cross_fields type
-        rank_neuro_cross = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
+        #rank_neuro_cross = es.search_with_weight(query, BEST_WEIGHT[0], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=domain_filter, fields=ARXIV_FIELDS, highlight=False)
         # search with property best weight and cross_fields type
-        rank_prop_cross = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=DEFAULT_FILTERS, fields=FIELDS, highlight=False)
-        ranklist = [rank_simple, rank_neuro_best, rank_prop_best, rank_neuro_cross, rank_prop_cross]
+        #rank_prop_cross = es.search_with_weight(query, BEST_WEIGHT[1], DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=domain_filter, fields=ARXIV_FIELDS, highlight=False)
+        ranklist = [rank_simple]
+        for weight in BEST_WEIGHT:
+            rank = es.search_with_weight(query, weight, DEFAULT_INDEX, size=DEFAULT_SIZE, type="cross_fields", filter=domain_filter, fields=ARXIV_FIELDS, highlight=False)
+            ranklist.append(rank)
+
         res = interleave(ranklist, params)
 
     filterlist = get_filter_list(params)
+    idlist = [hit['_id'] for hit in res]
+    logger.info("Ready to return ranking: " + str(idlist))
 
     return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist)
 
@@ -276,5 +330,5 @@ def mlt():
     return render_template('judge.html', hits=result, len=len(result), params=params, filterlist=[])
 
 if __name__ == "__main__":
-    build_app("./config-neuron.json")
-    app.run(host="0.0.0.0", port=8081, debug=True)
+    build_app("./config-physics.json")
+    app.run(host="0.0.0.0", port=8080, debug=True)
