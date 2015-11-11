@@ -1,6 +1,7 @@
 import logging
 import pickle
 import json
+import filters
 from assessments import Assessment
 from subprocess import check_output
 from datetime import datetime
@@ -313,10 +314,11 @@ def pool(params):
         res = interleave(ranklist, params)
 
     filterlist = get_filter_list(params)
+    filter_index = filters.get_filter_index(res)
     idlist = [hit['_id'] for hit in res]
     logger.info("Ready to return ranking: " + str(idlist))
 
-    return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist)
+    return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist, filter_index=json.dumps(filter_index))
 
 @app.route("/deusre/mlt", methods=["GET"])
 def mlt():

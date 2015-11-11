@@ -3,11 +3,17 @@
    <head>
    {% include 'head.html' %}
    <script src='/static/js/jquery.tooltipster.min.js'></script>
+   <script src='/static/js/jquery-ui.min.js'></script>
+   <script src='/static/js/facet.js'></script>
    <link rel='stylesheet' href='/static/css/judge.css'>
+   <link rel='stylesheet' href='/static/css/jquery-ui.min.css'>
    <link rel='stylesheet' href='/static/css/tooltipster.css'>
    <link rel='stylesheet' href='/static/css/LaTeXML.css'>
    <link rel='stylesheet' href='/static/css/ltx-article.css'>
    <link rel='stylesheet' href='/static/css/ltx-svjour.css'>
+   <link rel='stylesheet' href='/static/css/ltx-apj'>
+   <link rel='stylesheet' href='/static/css/ltx-ulem'>
+   <link rel='stylesheet' href='/static/css/ltx-amsart'>
    <script type="text/javascript">
        function completed() {
           var i = 0;
@@ -34,7 +40,6 @@
            var url = window.location.pathname;
            var param = window.location.search;
            var complete = completed();
-           alert(complete);
            if (url.endsWith("submit") && param.length != 0 && complete == null) {
              return "You have unsaved results.";
            } else {
@@ -42,6 +47,12 @@
            }
        };
        $(document).ready(function() {
+           $(function() {
+               $("#datefrom").datepicker({changeMonth:true, changeYear: true});
+               $("#datefrom").datepicker("option", "dateFormat", "yy-mm-dd");
+               $("#dateto").datepicker({changeMonth:true, changeYear: true});
+               $("#dateto").datepicker("option", "dateFormat", "yy-mm-dd");
+           });
            $('.tooltip').tooltipster({
                content: $('<style>td {padding: 2px 2px 2px 5px;} table {margin-top: 8px;}</style><center><b>Scales for Relevance Judgements</b><center><table style="font-size:14px;"><col width="135px"><tr><td style="vertical-align:middle;">Key Result:</td><td>This table is dedicated to the topic; authoritative and comprehensive, it is worthy of being a top result in a table search engine,</td></tr><tr><td style="vertical-align:middle;">Highly Relevant:</td><td>The content of this table provides substantial information on the topic,</td></tr><tr><td style="vertical-align:middle;">Relevant:</td><td>The content of this table provides some information on the topic, which may be minimal,</td></tr><tr><td style="vertical-align:middle;">Not Relevant:</td><td>The content of this table does not provide useful information on the topic, but may provide useful information on other topics, including other interpretations of the same query,</td></tr><tr><td style="vertical-align:middle;">Broken:</td><td>This table is broken or not readable.</td></tr><table>'),
                theme: 'my-custom-theme'
@@ -96,6 +107,14 @@
      <a class="logout" href="judge/logout">Log out</a>
    </header>
 
+   <!-- Side bar for faceted filtering -->
+   <div class="fixed-side-bar">
+       <p>Filter by date</p>
+       <label style="color:black">From:</label><input type="text" id="datefrom" onchange="update_date()">
+       <br>
+       <label style="color:black">To:</label><input type="text" id="dateto" onchange="update_date()">
+   </div>
+
    <!-- Listing of search results -->
    <main class="results-container">
       {% if params != None and len != 0 %}
@@ -112,6 +131,7 @@
             <table>
             <tr><td class="label">From:</td><td>{{ hit['article-title']}}</td></tr>
             <tr><td class="label">Domain:</td><td>{{ ", ".join(hit['domains']) }}</td></tr>
+            <tr><td class="label">Submit Date:</td><td id='{{ hit["id"] }}-date'>{{ hit['date'] }}</td></tr>
             </table>
             <br>
             {{ hit.html | safe}}
@@ -137,6 +157,10 @@
          {% endif  %}
       </section>
    </main>
+
+   <div class="data-placeholder">
+       {{ filter_index }}
+   </div>
 
    <script type="text/javascript">
       function submitForms() {

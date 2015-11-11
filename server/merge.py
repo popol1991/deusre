@@ -1,8 +1,7 @@
 from random import shuffle
 from es import ESResponse
 
-#MAX_POOL_SIZE = 100
-MAX_POOL_SIZE = 5
+MAX_POOL_SIZE = 100
 
 def getpid(docid):
     pid = ".".join(docid.split('.')[:-1])
@@ -42,8 +41,8 @@ def interleave(ranklist, filters):
             rank_to_render.append(doc)
     #shuffle(merged)
 
-    for i in xrange(len(merged)):
-        merged[i]['id'] = i
+    for i in xrange(len(rank_to_render)):
+        rank_to_render[i]['id'] = i
 
     #return merged
     return rank_to_render
