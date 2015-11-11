@@ -91,3 +91,20 @@ select#domain {
 .results-container {
     padding-top: 64px;
 }
+
+td.label {
+    min-width: 100px;
+}
+
+div.fixed-side-bar {
+    position: fixed;
+    left: 850px;
+    top: 172px;
+    background-color: white;
+    width: 300px;
+    height: 330px;
+}
+
+.highlight {
+    background-color: yellow;
+}

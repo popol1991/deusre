@@ -1,0 +1,44 @@
+.hevea .li-itemize{margin:1ex 0ex;}
+.hevea .li-enumerate{margin:1ex 0ex;}
+.hevea .dd-description{margin:0ex 0ex 1ex 4ex;}
+.hevea .dt-description{margin:0ex;}
+.hevea .toc{list-style:none;}
+.hevea .footnotetext{margin:0ex; padding:0ex;}
+.hevea div.footnotetext P{margin:0px; text-indent:1em;}
+.hevea .thefootnotes{text-align:left;margin:0ex;}
+.hevea .dt-thefootnotes{margin:0em;}
+.hevea .dd-thefootnotes{margin:0em 0em 0em 2em;}
+.hevea .footnoterule{margin:1em auto 1em 0px;width:50%;}
+.hevea .caption{padding-left:2ex; padding-right:2ex; margin-left:auto; margin-right:auto}
+.hevea .title{margin:2ex auto;text-align:center}
+.hevea .titlemain{margin:1ex 2ex 2ex 1ex;}
+.hevea .titlerest{margin:0ex 2ex;}
+.hevea .center{text-align:center;margin-left:auto;margin-right:auto;}
+.hevea .flushleft{text-align:left;margin-left:0ex;margin-right:auto;}
+.hevea .flushright{text-align:right;margin-left:auto;margin-right:0ex;}
+.hevea div table{margin-left:inherit;margin-right:inherit;margin-bottom:2px;margin-top:2px}
+.hevea td table{margin:auto;}
+.hevea table{border-collapse:collapse;}
+.hevea td{padding:0;}
+.hevea .cellpadding0 tr td{padding:0;}
+.hevea .cellpadding1 tr td{padding:1px;}
+.hevea pre{text-align:left;margin-left:0ex;margin-right:auto;}
+.hevea blockquote{margin-left:4ex;margin-right:4ex;text-align:left;}
+.hevea td p{margin:0px;}
+.hevea .boxed{border:1px solid black}
+.hevea .textboxed{border:1px solid black}
+.hevea .vbar{border:none;width:2px;background-color:black;}
+.hevea .hbar{border:none;height:2px;width:100%;background-color:black;}
+.hevea .hfill{border:none;height:1px;width:200%;background-color:black;}
+.hevea .vdisplay{border-collapse:separate;border-spacing:2px;width:auto; empty-cells:show; border:2px solid red;}
+.hevea .vdcell{white-space:nowrap;padding:0px; border:2px solid green;}
+.hevea .display{border-collapse:separate;border-spacing:2px;width:auto; border:none;}
+.hevea .dcell{white-space:nowrap;padding:0px; border:none;}
+.hevea .dcenter{margin:0ex auto;}
+.hevea .vdcenter{border:solid #FF8000 2px; margin:0ex auto;}
+.hevea .minipage{text-align:left; margin-left:0em; margin-right:auto;}
+.hevea .marginpar{border:solid thin black; width:20%; text-align:left;}
+.hevea .marginparleft{float:left; margin-left:0ex; margin-right:1ex;}
+.hevea .marginparright{float:right; margin-left:1ex; margin-right:0ex;}
+.hevea .theorem{text-align:left;margin:1ex auto 1ex 0ex;}
+.hevea .part{margin:2ex auto;text-align:center}
