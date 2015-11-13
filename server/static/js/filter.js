@@ -5,6 +5,12 @@ app.config(['$interpolateProvider', function($interpolateProvider) {
     $interpolateProvider.endSymbol(']}');
 }]);
 
+app.controller('facetCtrl', ['$scope', '$http', function($scope, $http) {
+    $http.get('/deusre/judge/unit.json').success(function (data) {
+        $scope.unitsMap = eval(data);
+    });
+}]);
+
 app.controller('filterCtrl', ['$scope', '$location', function($scope, $location) {
     $scope.filters = [{
         id: 1,
@@ -113,3 +119,4 @@ app.controller('filterCtrl', ['$scope', '$location', function($scope, $location)
 
     $scope.init();
 }]);
+

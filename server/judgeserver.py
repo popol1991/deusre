@@ -1,7 +1,7 @@
 import logging
 import pickle
 import json
-import filters
+from facet import Facet
 from assessments import Assessment
 from subprocess import check_output
 from datetime import datetime
@@ -41,6 +41,7 @@ DEFAULT_INDEX = None
 DEFAULT_FILTERS = None
 es = None
 assessed = None
+FACET = None
 
 # initialize logger
 logging.basicConfig(level=logging.INFO)
@@ -63,11 +64,13 @@ def build_app(config_path):
     global JUDGE_INDEX
     global es
     global assessed
+    global FACET
     config = json.load(open(config_path))
     es = ES(config['es_server'])
     JUDGE_INDEX = config['judgeIndex']
     assessed = Assessment(config)
     DEFAULT_INDEX = config['index']
+    FACET = Facet(config['unitPath'])
     if 'filter' in config:
         DEFAULT_FILTERS = [config['filter']]
     else:
@@ -314,11 +317,17 @@ def pool(params):
         res = interleave(ranklist, params)
 
     filterlist = get_filter_list(params)
-    filter_index = filters.get_filter_index(res)
+    filter_index, property_list = FACET.get_filter_index(res)
     idlist = [hit['_id'] for hit in res]
     logger.info("Ready to return ranking: " + str(idlist))
 
-    return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist, filter_index=json.dumps(filter_index))
+    return render_template('judge.html', hits=res, len=len(res), params=params, filterlist=filterlist, filter_index=json.dumps(filter_index), property_list=property_list)
+
+@app.route("/deusre/judge/unit.json")
+def subjects():
+    with open("./static/data/front-unit.json") as fin:
+        subject = "".join(fin.readlines())
+    return subject
 
 @app.route("/deusre/mlt", methods=["GET"])
 def mlt():

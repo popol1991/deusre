@@ -4,7 +4,6 @@
    {% include 'head.html' %}
    <script src='/static/js/jquery.tooltipster.min.js'></script>
    <script src='/static/js/jquery-ui.min.js'></script>
-   <script src='/static/js/facet.js'></script>
    <link rel='stylesheet' href='/static/css/judge.css'>
    <link rel='stylesheet' href='/static/css/jquery-ui.min.css'>
    <link rel='stylesheet' href='/static/css/tooltipster.css'>
@@ -15,6 +14,14 @@
    <link rel='stylesheet' href='/static/css/ltx-ulem'>
    <link rel='stylesheet' href='/static/css/ltx-amsart'>
    <script type="text/javascript">
+       var unitInfo = null;
+       $.ajax({
+            type: 'GET',
+            url: '/deusre/judge/unit.json',
+            dataType: 'json',
+            success: function(data) { unitInfo = data; },
+            async: false
+       });
        function completed() {
           var i = 0;
           var reldict = {};
@@ -27,7 +34,7 @@
               reldict[tableId] = rel;
           }
           return reldict;
-       }
+       };
        function logging(msg) {
             $.ajax({
                     method: "POST",
@@ -36,6 +43,77 @@
             }).done(function(msg) {
             });
        };
+        function update_date() {
+            var from = $('#datefrom').val();
+            if (from.length == 0) from = '0000-00-00';
+            var to = $('#dateto').val();
+            if (to.length == 0) to = '3000-00-00';
+
+            var facets = eval($('.data-placeholder').html());
+            for (var i = 0; i < facets.length; i++) {
+                var date = facets[i]['date'];
+                var id = "#" + i + "-date";
+                if (date > from && date < to) {
+                    $(id).addClass('highlight');
+                } else {
+                    $(id).removeClass('highlight');
+                }
+            }
+            logging("Selecting date range from " + from + " to " + to);
+        };
+        function normalize(prop, unit, value) {
+            if (value == null) {
+                return null;
+            }
+            var conversion = unitInfo[prop]['conversion'][unit];
+            var multiplier = conversion['multiplier'];
+            var offset = conversion['offset'];
+            var normalized = parseFloat(value) * multiplier + offset;
+            return normalized;
+        };
+        function update_facet(id, name) {
+            var unit = $('#unit-'+id).find(":selected").val();
+            var from = $('#from-'+id).val();
+            if (from.length == 0) from = null;
+            var to = $('#to-'+id).val();
+            if (to.length == 0) to = null;
+            if (from != null && to != null && from >= to) {
+                alert("Maximum value must be greater than minimum value.");
+            }
+            alert(unit);
+            from = normalize(name, unit, from);
+            to = normalize(name, unit, to);
+            alert(from);
+            alert(to);
+            var facets = eval($('.data-placeholder').html());
+            for (var i = 0; i < facets.length; i++) {
+                var cell_list = facets[i]['cell_list'];
+                for (var j = 0; j < cell_list.length; j++) {
+                    var cell = cell_list[j];
+                    var prop_id = cell['prop'];
+                    if (prop_id == id) {
+                        var value = cell['value'];
+                        alert(value);
+                        var selid = "#";
+                        for (var k = 0; k < cell['id'].length; k++) {
+                            var ch = cell['id'][k];
+                            if (ch == '/' || ch == '.') {
+                                selid = selid + "\\";
+                            }
+                            selid = selid + ch;
+                        }
+                        var gtFrom = from == null || value > from;
+                        var ltTo = to == null || value < to;
+                        if (gtFrom && ltTo) {
+                            alert($(selid).html());
+                            $(selid).addClass('highlight');
+                        } else {
+                            $(selid).removeClass('highlight');
+                        }
+                    }
+                }
+            }
+        };
        function reminder() {
            var url = window.location.pathname;
            var param = window.location.search;
@@ -46,7 +124,17 @@
              return null;
            }
        };
+       function show_full_caption(id) {
+           $('#short-caption-' + id).hide();
+           $('#full-caption-' + id).show();
+           $('#show-all-' + id).hide();
+       }
        $(document).ready(function() {
+           $('.short-caption').html(function(idx, oldhtml) {
+                var len = oldhtml.length;
+                var text = oldhtml.substring(0, 80);
+                return text;
+           });
            $(function() {
                $("#datefrom").datepicker({changeMonth:true, changeYear: true});
                $("#datefrom").datepicker("option", "dateFormat", "yy-mm-dd");
@@ -108,11 +196,24 @@
    </header>
 
    <!-- Side bar for faceted filtering -->
-   <div class="fixed-side-bar">
-       <p>Filter by date</p>
-       <label style="color:black">From:</label><input type="text" id="datefrom" onchange="update_date()">
-       <br>
-       <label style="color:black">To:</label><input type="text" id="dateto" onchange="update_date()">
+   <div class="fixed-side-bar" data-ng-controller='facetCtrl'>
+       <div class="facet-div">
+           <label class="facet-label">Filter by date</label>
+           <br>
+           <input type="text" id="datefrom" class="facet from" placeholder="Min." onchange="update_date()">
+           <input type="text" id="dateto" class="facet to" placeholder="Max." onchange="update_date()">
+       </div>
+       {% for property in property_list %}
+       <div class="facet-div">
+           <label class="facet-label">{{ property["name"] }}</label>
+           <select id='unit-{{property.id}}' class="facet-unit" onchange="update_facet('{{property.id}}', '{{property.name}}')">
+               <option ng-repeat="unit in unitsMap['{{property.name}}']['units']" value='{[unit]}'>{[unit]}</option>
+           </select>
+           <br>
+           <input type="text" id="from-{{property.id}}" class="facet from" placeholder="Min." onchange="update_facet('{{property.id}}','{{property.name}}')">
+           <input type="text" id="to-{{property.id}}" class="facet to" placeholder="Max." onchange="update_facet('{{property.id}}', '{{property.name}}')">
+       </div>
+       {% endfor %}
    </div>
 
    <!-- Listing of search results -->
@@ -127,7 +228,18 @@
          {% for hit in hits %}
          <article class='result'>
 
-            <h2><a href="{{ hit.link }}" target="_blank" onclick='logging("clicked caption {{hit._id}}")'>{{ hit['caption'] }}</a></h2>
+         <h2>
+            <span id="short-caption-{{hit['id']}}">
+                <a href="{{ hit.link }}" target="_blank" class="short-caption" onclick='logging("clicked caption {{hit._id}}")'>{{ hit['caption'] }}</a>
+            </span>
+            {% if hit['caption']|length >= 80 %}
+            ...
+            <button id="show-all-{{hit['id']}}" onclick="show_full_caption('{{hit['id']}}')">Show all</button>
+            <span id="full-caption-{{hit['id']}}" class="full-caption" style="display:none">
+                <a href="{{ hit.link }}" target="_blank" onclick='logging("clicked caption {{hit._id}}")'>{{ hit['caption']}}</a>
+            </span>
+            {% endif %}
+         </h2>
             <table>
             <tr><td class="label">From:</td><td>{{ hit['article-title']}}</td></tr>
             <tr><td class="label">Domain:</td><td>{{ ", ".join(hit['domains']) }}</td></tr>

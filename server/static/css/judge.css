@@ -102,9 +102,28 @@ div.fixed-side-bar {
     top: 172px;
     background-color: white;
     width: 300px;
-    height: 330px;
 }
 
 .highlight {
     background-color: yellow;
+}
+
+div.facet-div {
+    margin: 18px;
+}
+
+.facet-label {
+    color: black;
+    float: left;
+}
+
+.facet-unit {
+    margin-left: 10px;
+}
+
+.facet {
+    width: 120px;
+}
+
+.to {
 }
