@@ -53,11 +53,12 @@ class Facet(object):
                     #print cell
                     value = {}
                     if cell['type'] != -1 and cell['unit']:
-                        value['value'] = self.normalize(cell['mainValue'], cell['unit'], cell['prefix'])
-                        value['id'] = cell['cellid']
-                        prop_id, prop_name = self.unit2prop[cell['unit']]
-                        value['prop'] = prop_id
-                        celllist.append(value)
-                        propset.add((prop_id, prop_name))
+                        if 'prefix' in cell and 'unit' in cell and 'mainValue' in cell:
+                            value['value'] = self.normalize(cell['mainValue'], cell['unit'], cell['prefix'])
+                            value['id'] = cell['cellid']
+                            prop_id, prop_name = self.unit2prop[cell['unit']]
+                            value['prop'] = prop_id
+                            celllist.append(value)
+                            propset.add((prop_id, prop_name))
             retlist.append(dict(date=hit['date'], cell_list=celllist))
         return retlist, [dict(id=p[0], name=p[1]) for p in propset]
