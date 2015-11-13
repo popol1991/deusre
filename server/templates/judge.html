@@ -171,23 +171,23 @@
      <div class="info">
        <a class='instruction' href="judge/description">Instruction</a>
      </div>
-        <form id='filter-form' data-parley-validate data-ng-controller='filterCtrl'>
-            <table class="filter">
-            <tr class="filter_item" ng-repeat="filter in filterlist">
-                <td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">
-                </select></td>
-                <td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min" value="{[ filter.selected.min ]}" placeholder="From:"/></td>
-                <td><input data-parsley-type="number" name="{[ filter.selected.name]}_max" value="{[ filter.selected.max ]}" placeholder="To:"/></td>
-                <td style="border:none"><button class="addFilter" type="button" onclick="removefilter()" ng-click="remove($index)">Remove</button></td>
-            </tr>
-            <tr>
-                <td style="border:none;">Filter:</td>
-                <td class="dummy"><input disabled/></td>
-                <td class="dummy"><input disabled/></td>
-                <td style="border:none;"><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>
-            </tr>
-            </table>
-        </form>
+        <!--<form id='filter-form' data-parley-validate data-ng-controller='filterCtrl'>-->
+            <!--<table class="filter">-->
+            <!--<tr class="filter_item" ng-repeat="filter in filterlist">-->
+                <!--<td><select ng-model="filter.selected" required ng-options="item as item.label for item in filters track by item.id">-->
+                <!--</select></td>-->
+                <!--<td><input data-parsley-type="number" name="{[ filter.selected.name ]}_min" value="{[ filter.selected.min ]}" placeholder="From:"/></td>-->
+                <!--<td><input data-parsley-type="number" name="{[ filter.selected.name]}_max" value="{[ filter.selected.max ]}" placeholder="To:"/></td>-->
+                <!--<td style="border:none"><button class="addFilter" type="button" onclick="removefilter()" ng-click="remove($index)">Remove</button></td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td style="border:none;">Filter:</td>-->
+                <!--<td class="dummy"><input disabled/></td>-->
+                <!--<td class="dummy"><input disabled/></td>-->
+                <!--<td style="border:none;"><button class="addFilter" type="button" onclick="addfilter()" ng-click="addFilter()">Add Filter</button></td>-->
+            <!--</tr>-->
+            <!--</table>-->
+        <!--</form>-->
      <a class="logout" href="judge/logout">Log out</a>
    </header>
 
