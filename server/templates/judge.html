@@ -80,11 +80,8 @@
             if (from != null && to != null && from >= to) {
                 alert("Maximum value must be greater than minimum value.");
             }
-            alert(unit);
             from = normalize(name, unit, from);
             to = normalize(name, unit, to);
-            alert(from);
-            alert(to);
             var facets = eval($('.data-placeholder').html());
             for (var i = 0; i < facets.length; i++) {
                 var cell_list = facets[i]['cell_list'];
@@ -93,7 +90,6 @@
                     var prop_id = cell['prop'];
                     if (prop_id == id) {
                         var value = cell['value'];
-                        alert(value);
                         var selid = "#";
                         for (var k = 0; k < cell['id'].length; k++) {
                             var ch = cell['id'][k];
@@ -105,7 +101,6 @@
                         var gtFrom = from == null || value > from;
                         var ltTo = to == null || value < to;
                         if (gtFrom && ltTo) {
-                            alert($(selid).html());
                             $(selid).addClass('highlight');
                         } else {
                             $(selid).removeClass('highlight');
@@ -113,6 +108,7 @@
                     }
                 }
             }
+            logging("Selecting property: " + name + " range from " + from + " to " + to + " in unit " + unit);
         };
        function reminder() {
            var url = window.location.pathname;
@@ -278,6 +274,17 @@
       function submitForms() {
           $('#filter-form :input').not(':submit').clone().hide().appendTo('#query');
       };
+      function side_bar_info() {
+          var facetlist = $('.facet-div');
+          var retList = new Array();
+          $.each(facetlist, function(idx, value) {
+              var label = $(value).find('label').text();
+              var from = $(value).find('input.from').val()
+              var to = $(value).find('input.to').val()
+              retList.push({label: label, from: from, to: to})
+          });
+          return retList;
+      };
       function save(next) {
           var judge = {};
           var reldict = completed();
@@ -287,6 +294,7 @@
           }
           judge['query'] = $('form').serializeArray();
           judge['prel'] = reldict;
+          judge['side-bar'] = side_bar_info();
           // post result to server here
           // redirect to new search page if succeed
           $.post("judge/result", JSON.stringify(judge), function(data) {
