@@ -34,7 +34,7 @@ class Facet(object):
                     self.conversion[unit_name] = unit['in-base-unit']
 
     def normalize(self, value, unit, prefix):
-        print unit
+        #print unit
         multiplier = self.conversion[unit]['multiplier']
         offset = self.conversion[unit]['zero-point']
         normalized = value * multiplier + offset

@@ -68,7 +68,7 @@ def build_app(config_path):
     config = json.load(open(config_path))
     es = ES(config['es_server'])
     JUDGE_INDEX = config['judgeIndex']
-    assessed = Assessment(config)
+    #assessed = Assessment(config)
     DEFAULT_INDEX = config['index']
     FACET = Facet(config['unitPath'])
     if 'filter' in config:
@@ -80,6 +80,13 @@ def build_app(config_path):
 class User(UserMixin):
     # proxy for a database of users
     user_database = {"demo" : ("demo", "demo", True),
+                     "test1" : ("test1", "test", True),
+                     "test2" : ("test2", "test", True),
+                     "test3" : ("test3", "test", True),
+                     "test4" : ("test4", "test", True),
+                     "test5" : ("test5", "test", True),
+                     "test6" : ("test6", "test", True),
+                     "test7" : ("test7", "test", True),
                      "kyle": ("kyle", "kyle", False)}
     empty = True
     with open(ACCOUNT_FILE) as fin:
@@ -240,7 +247,7 @@ def result():
     if len(params) != 1:
         return "error" #TODO: something is wrong with the posted data
     judge = params.keys()[0]
-    print judge
+    #print judge
     body = judge_body(judge)
     logger.info("Sending result to ES")
     es.index(index=JUDGE_INDEX, doc_type="judge", body=body)
